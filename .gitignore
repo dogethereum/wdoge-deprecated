@@ -1,0 +1,17 @@
+# Typescript and node
+/dist
+/build
+/node_modules
+
+# Mac
+._.DS_Store
+
+# Vim
+*.swp
+
+# Hardhat
+/artifacts
+/cache
+
+# Used by upgrades plugin
+.openzeppelin/
