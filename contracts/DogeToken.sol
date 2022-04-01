@@ -11,14 +11,14 @@ contract DogeToken is Initializable, ERC20Upgradeable, OwnableUpgradeable {
   /// @custom:oz-upgrades-unsafe-allow constructor
   constructor() initializer {}
 
-  function initialize(address owner) public initializer {
+  function initialize(address tokenAdmin) public initializer {
     // Contract initialization
     // TODO: decide token name and symbol
-    __ERC20_init("DogeToken", "DTK");
+    __ERC20_init("DogeToken", "DOGE");
     __Ownable_init();
 
     // Must happen after initialization.
-    _transferOwnership(owner);
+    _transferOwnership(tokenAdmin);
   }
 
   function mint(uint256 amount) public onlyOwner {
