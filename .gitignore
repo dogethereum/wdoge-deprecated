@@ -1,7 +1,7 @@
 # Typescript and node
-/dist
-/build
-/node_modules
+dist
+build
+node_modules
 
 # Mac
 ._.DS_Store
@@ -10,8 +10,8 @@
 *.swp
 
 # Hardhat
-/artifacts
-/cache
+artifacts
+cache
 
 # Used by upgrades plugin
 .openzeppelin/
