@@ -1,5 +1,5 @@
+import type { ContractTransaction, ContractReceipt, Event } from "ethers";
 import hre from "hardhat";
-
 
 
 /**
@@ -48,4 +48,48 @@ function isolate(
       params: [snapshot],
     });
   });
+}
+
+export async function expectFailure(
+  f: () => Promise<unknown>,
+  handle: (error: Error) => void
+): Promise<void> {
+  let result;
+  try {
+    result = await f();
+  } catch (error) {
+    if (error instanceof Error) {
+      // In most cases the handler won't return a promise, but just in case.
+      try {
+        await handle(error);
+      } catch (assertion) {
+        throw new Error(`${assertion}
+Original error: ${error.stack || error}`);
+      }
+      return;
+    }
+
+    throw error;
+  }
+
+  throw new Error(`Did not fail. Result: ${result}`);
+}
+
+export function filterEvents(
+  events: ContractReceipt["events"],
+  name: string
+): Event[] {
+  if (events === undefined) {
+    throw new Error("No events found on receipt!");
+  }
+  return events.filter(({ event }) => event === name);
+}
+
+export async function getEvents(
+  tx: ContractTransaction,
+  eventName: string
+): Promise<{ receipt: ContractReceipt; events: Event[] }> {
+  const receipt = await tx.wait();
+  const events = filterEvents(receipt.events, eventName);
+  return { receipt, events: events };
 }
