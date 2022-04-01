@@ -80,7 +80,7 @@ describe("DogeToken", function () {
 
         it("reverts", async function () {
           await expectFailure(
-            () => dogeToken.connect(initialHolder).transfer(recipient.address, amount),
+            () => dogeToken.transfer(recipient.address, amount),
             (error) => assert.include(error.message, `transfer amount exceeds balance`)
           );
         });
@@ -90,7 +90,7 @@ describe("DogeToken", function () {
         const amount = initialSupply.toString();
 
         it("transfers the requested amount", async function () {
-          await dogeToken.connect(initialHolder).transfer(recipient.address, amount);
+          await dogeToken.transfer(recipient.address, amount);
 
           expect(
             (await dogeToken.balanceOf(initialHolder.address)).toString()
@@ -105,13 +105,7 @@ describe("DogeToken", function () {
           const tx: ethers.ContractTransaction = await dogeToken
             .connect(initialHolder)
             .transfer(recipient.address, amount);
-          const { events } = await getEvents(tx, "Transfer");
-          assert.lengthOf(events, 1);
-          const event = events[0];
-          assert.isDefined(event.args);
-          assert.strictEqual(event.args!.from, initialHolder.address);
-          assert.strictEqual(event.args!.to, recipient.address);
-          expect(event.args!.value.toString()).to.be.a.bignumber.equal(amount);
+          await expectTransfer(tx, initialHolder, recipient, amount.toString());
         });
       });
 
@@ -119,7 +113,7 @@ describe("DogeToken", function () {
         const amount = 0;
 
         it("transfers the requested amount", async function () {
-          await dogeToken.connect(initialHolder).transfer(recipient.address, amount);
+          await dogeToken.transfer(recipient.address, amount);
 
           expect(
             (await dogeToken.balanceOf(initialHolder.address)).toString()
@@ -134,13 +128,7 @@ describe("DogeToken", function () {
           const tx: ethers.ContractTransaction = await dogeToken
             .connect(initialHolder)
             .transfer(recipient.address, amount);
-          const { events } = await getEvents(tx, "Transfer");
-          assert.lengthOf(events, 1);
-          const event = events[0];
-          assert.isDefined(event.args);
-          assert.strictEqual(event.args!.from, initialHolder.address);
-          assert.strictEqual(event.args!.to, recipient.address);
-          expect(event.args!.value.toString()).to.be.a.bignumber.equal(amount.toString());
+          await expectTransfer(tx, initialHolder, recipient, amount.toString());
         });
       });
     });
@@ -148,10 +136,20 @@ describe("DogeToken", function () {
     describe("when the recipient is the zero address", function () {
       it("reverts", async function () {
         await expectFailure(
-          () => dogeToken.connect(initialHolder).transfer(ZERO_ADDRESS, initialSupply),
+          () => dogeToken.transfer(ZERO_ADDRESS, initialSupply),
           (error) => assert.include(error.message, `transfer to the zero address`)
         );
       });
     });
   });
 });
+
+async function expectTransfer(tx: ethers.ContractTransaction, from: SignerWithAddress, to: SignerWithAddress, amount: string) {
+  const {events} = await getEvents(tx, "Transfer");
+  assert.lengthOf(events, 1);
+  const event = events[0];
+  assert.isDefined(event.args);
+  assert.strictEqual(event.args!.from, from.address);
+  assert.strictEqual(event.args!.to, to.address);
+  expect(event.args!.value.toString()).to.be.a.bignumber.equal(amount);
+}
