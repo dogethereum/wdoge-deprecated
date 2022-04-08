@@ -1,6 +1,5 @@
 import "@nomiclabs/hardhat-ethers";
-import "@nomiclabs/hardhat-truffle5";
-import "@nomiclabs/hardhat-web3";
+import "@nomiclabs/hardhat-etherscan";
 import type { HardhatUserConfig } from "hardhat/types";
 import "@openzeppelin/hardhat-upgrades";
 import "hardhat-gas-reporter";
