@@ -13,17 +13,22 @@ import {
 export interface DeployTaskArguments {
   confirmations: number;
   tokenAdmin: string;
+  proxyAdmin?: string;
 }
 
 /**
  * This script always deploys the production token.
  */
 const deployCommand: ActionType<DeployTaskArguments> = async function (
-  { confirmations, tokenAdmin },
+  { confirmations, tokenAdmin, proxyAdmin },
   hre
 ) {
-  if (!hre.ethers.utils.isAddress(tokenAdmin))
+  if (!hre.ethers.utils.isAddress(tokenAdmin)) {
     throw new Error("Invalid Ethereum address for the token administrator.");
+  }
+  if (proxyAdmin !== undefined && !hre.ethers.utils.isAddress(proxyAdmin)) {
+    throw new Error("Invalid Ethereum address for the proxy administrator.");
+  }
   if (confirmations < 1) throw new Error("Confirmations can't be lower than 1.");
 
   const deploymentDir = getDefaultDeploymentPath(hre);
@@ -34,15 +39,20 @@ const deployCommand: ActionType<DeployTaskArguments> = async function (
     throw new Error(`A deployment for ${hre.network.name} already exists.`);
   }
 
-  const [proxyAdmin] = await hre.ethers.getSigners();
+  const [deployer] = await hre.ethers.getSigners();
 
-  const deployment = await deployToken(hre, proxyAdmin, {
+  const deployment = await deployToken(hre, deployer, {
     tokenAdmin,
     useProxy: true,
     confirmations,
   });
 
   console.log(`Deployed token!`);
+
+  if (proxyAdmin !== undefined) {
+    await hre.upgrades.admin.changeProxyAdmin(deployment.dogeToken.contract.address, proxyAdmin);
+    console.log(`Transferred proxy administration to ${proxyAdmin}`);
+  }
   return storeDeployment(hre, deployment, deploymentDir);
 };
 
@@ -50,6 +60,12 @@ task("dogethereum.deploy", "Deploys doge token.")
   .addParam(
     "tokenAdmin",
     `The Ethereum address of the token administrator. This account can mint and burn tokens.`,
+    undefined,
+    types.string
+  )
+  .addOptionalParam(
+    "proxyAdmin",
+    `The Ethereum address of the proxy administrator. If unspecified, the tx signer will be the proxy admin.`,
     undefined,
     types.string
   )
