@@ -6,6 +6,12 @@ The Dogecoin-Ethereum bridge requires a token to represent doges in the Ethereum
 
 - [nodejs](https://nodejs.org) [latest LTS](https://nodejs.org/en/about/releases/) or above. This is currently fermium (v14).
 
+Additionally, several snippets assume you have installed the [Hardhat shorthand](https://hardhat.org/guides/shorthand.html). These can be replaced with a Hardhat invocation through `npx` like so:
+
+```sh
+npx hardhat
+```
+
 ## Installing
 
 To run tests or deployment you need to install the root package dependencies. To do so:
