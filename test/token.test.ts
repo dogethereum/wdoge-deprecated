@@ -411,7 +411,7 @@ describe("DogeToken", function () {
 
           it("emits an approval event", async function () {
             const tx = await dogeToken.decreaseAllowance(recipient.address, approvedAmount);
-            expectApproval(tx, initialHolder, recipient, 0);
+            expectApproval(tx, initialHolder, recipient, "0");
           });
 
           it("decreases the spender allowance subtracting the requested amount", async function () {
