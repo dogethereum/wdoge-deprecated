@@ -25,6 +25,37 @@ There are unit tests for the token contract.
 
 Use `npm test` to run them.
 
+## Usage
+
+### Viewing your balance in MetaMask
+
+1. Select your account.
+2. Go to `Assets` tab.
+3. Click `Import tokens`.
+4. Paste the token contract address. The contract should have the `TransparentUpgradeableProxy` contract name.
+5. Wait for the Token Symbol and Token Decimals to be auto detected.
+6. Click `Add Custom Token`.
+7. Click `Import Tokens`.
+
+Now you should see your token balance.
+
+### Sending tokens in MetaMask
+
+This requires [registering the token](#viewing-your-balance-in-metamask) previously.
+To send tokens to another account
+
+1. Select your account.
+2. Go to `Assets` tab.
+3. Click the row that has the token symbol.
+4. Click the `Send` button.
+5. Choose the destination account.
+6. Choose the amount.
+7. Click Next.
+8. (Optional) Edit the gas fees.
+9. Click Confirm.
+
+Eventually, the transaction should be confirmed.
+
 ## Deployment
 
 There is a Hardhat task that deploys the token. It is meant for both testnet and mainnet networks.
