@@ -86,7 +86,7 @@ These are the steps for a successful deploy on rinkeby:
 2. Ensure your proxy administrator address has enough ether for deployment. The total deployment cost shouldn't be higher than 2M gas.
 3. Invoke the Hardhat deploy task:
 ```sh
-hh --network rinkeby dogethereum.deploy --token-admin tokenAdminAddress
+hh --network rinkeby dogethereum.deployToken --token-admin tokenAdminAddress
 ```
 
 It is highly recommended to [verify](#verification) the logic contract and the proxy contract at this point.
@@ -97,6 +97,21 @@ Once that is done, the deployment is finished.
 ### Mainnet deployment
 
 TODO
+
+### Other deployment options
+
+The deploy task has other options that may be useful in certain network conditions. All options can be consulted by invoking:
+
+```sh
+hh dogethereum.deployToken --help
+```
+
+Some of these options are:
+
+- `--token-gas-limit`: gas limit for the token logic contract deployment.
+- `--proxy-gas-limit`: gas limit for the proxy contract deployment.
+- `--max-fee-per-gas`: maximum fee per unit of gas.
+- `--max-priority-fee-per-gas`: maximum priority fee per unit of gas.
 
 ### Verification
 
@@ -167,7 +182,7 @@ constructor(address _logic, address admin_, bytes memory _data) {}
 Note that you need these values as they were sent in the deployment transaction, it does not matter if the contract later modified the state variables associated with these parameters. For this reason, the deploy task stores the arguments into the deployment artifact.
 
 1. The logic contract address for the `DogeToken` is the same one as explained [here](#logic-contracts). Run `jq .contracts.dogeToken.logicContractAddress deployment/your-network/deployment.json` to get it.
-2. The admin argument is always the `ProxyAdmin` contract deployed by the upgrades plugin. Run `jq .contracts.dogeToken.proxyAdminContract deployment/your-network/deployment.json` to get it.
+2. The admin argument is the initial administrator account. Run `jq .contracts.dogeToken.proxyAdmin deployment/your-network/deployment.json` to get it.
 3. The `_data` field is the ABI encoded call to the initializer function in the logic contract. Run `jq .contracts.dogeToken.initData deployment/your-network/deployment.json` to get it.
 
 With all these you can now verify the proxy contract:
