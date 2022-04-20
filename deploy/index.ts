@@ -10,10 +10,15 @@ interface DeployOutput {
    * Object representing a concrete deployment of the contract.
    */
   contract: ethers.Contract;
+  // TODO: the following three fields should be all defined or all undefined.
   /**
-   * Proxy admin signer, if any.
+   * Proxy administrator address, if any.
    */
-  proxyAdmin?: SignerWithAddress;
+  proxyAdmin?: string;
+  /**
+   * Encoded call data for the initialization function used in the proxy constructor.
+   */
+  initData?: string;
 }
 
 export interface DogethereumContract extends DeployOutput {
@@ -51,10 +56,24 @@ export interface DogethereumTokenFixture {
 export interface ContractOptions {
   initArguments: InitializerArguments;
   confirmations: number;
+  maxFeePerGas?: ethers.BigNumber;
+  maxPriorityFeePerGas?: ethers.BigNumber;
+  logicGasLimit?: number;
+  proxyGasLimit?: number;
+  proxyAdmin?: string;
 }
 type InitializerArguments = any[];
 
-export interface UserDeploymentOptions {
+export type UserDeploymentOptions = UserDeploymentOptionsGeneric & AllUserDeploymentOptions;
+type AllUserDeploymentOptions =
+  | UserProxyDeploymentOptions
+  | UserPlainDeploymentOptions
+  | UnspecifiedKindDeploymentOptions;
+interface UnspecifiedKindDeploymentOptions {
+  useProxy?: never;
+}
+
+interface UserDeploymentOptionsGeneric {
   /**
    * Number of block confirmations to wait for when deploying a contract.
    */
@@ -63,6 +82,31 @@ export interface UserDeploymentOptions {
    * Use transparent proxies to deploy main contracts
    */
   useProxy?: boolean;
+  /**
+   * Maximum fee per unit of gas burnt. See EIP 1559.
+   */
+  maxFeePerGas?: ethers.BigNumber;
+  /**
+   * Maximum priority fee per unit of gas paid to miner. See EIP 1559.
+   */
+  maxPriorityFeePerGas?: ethers.BigNumber;
+  /**
+   * Maximum amount of gas allowed for logic contract deployment.
+   */
+  logicGasLimit?: number;
+}
+
+interface UserProxyDeploymentOptions {
+  useProxy: true;
+  /**
+   * Maximum amount of gas allowed for proxy contract deployment.
+   * Keep in mind that this gas is used for proxy account initialization too.
+   */
+  proxyGasLimit?: number;
+}
+
+interface UserPlainDeploymentOptions {
+  useProxy: false;
 }
 
 type DeployF = (
@@ -93,7 +137,7 @@ export function getDefaultDeploymentPath(hre: HardhatRuntimeEnvironment): string
 
 async function getContractDescription(
   hre: HardhatRuntimeEnvironment,
-  { contract, name }: DogethereumContract
+  { contract, name, proxyAdmin, initData }: DogethereumContract
 ) {
   const artifact = await hre.artifacts.readArtifact(name);
   return {
@@ -101,6 +145,11 @@ async function getContractDescription(
     contractName: artifact.contractName,
     sourceName: artifact.sourceName,
     address: contract.address,
+    ...(proxyAdmin !== undefined && {
+      logicContractAddress: await hre.upgrades.erc1967.getImplementationAddress(contract.address),
+      proxyAdmin,
+      initData,
+    }),
   };
 }
 
@@ -123,13 +172,44 @@ export async function storeDeployment(
   await fs.writeJson(deploymentJsonPath, deploymentInfo);
 }
 
-const deployProxy: DeployF = async (hre, factory, { initArguments, confirmations }) => {
-  const contract = await hre.upgrades.deployProxy(factory, initArguments, {
+const deployProxy: DeployF = async (
+  hre,
+  logicFactory,
+  {
+    initArguments,
+    confirmations,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+    logicGasLimit,
+    proxyGasLimit,
+    proxyAdmin,
+  }
+) => {
+  if (proxyAdmin === undefined) {
+    proxyAdmin = await logicFactory.signer.getAddress();
+  }
+
+  const proxyFactory = await hre.ethers.getContractFactory(
+    "contracts/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy",
+    logicFactory.signer
+  );
+  const contract = await hre.upgrades.deployProxy(logicFactory, initArguments, {
     kind: "transparent",
+    ...(maxFeePerGas !== undefined && { maxFeePerGas }),
+    ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas }),
+    transparentProxy: {
+      ...(proxyGasLimit !== undefined && { gasLimit: proxyGasLimit }),
+      factory: proxyFactory,
+    },
+    ...(logicGasLimit !== undefined && { implementationGasLimit: logicGasLimit }),
+    proxyAdmin,
   });
   await contract.deployTransaction.wait(confirmations);
-  const address = await factory.signer.getAddress();
-  return { contract, proxyAdmin: await hre.ethers.getSigner(address) };
+  return {
+    contract,
+    proxyAdmin,
+    initData: logicFactory.interface.encodeFunctionData("initialize", initArguments),
+  };
 };
 
 const deployPlain: DeployF = async (hre, factory, { initArguments, confirmations }) => {
@@ -154,10 +234,9 @@ export async function deployContract(
   initArguments: InitializerArguments,
   hre: HardhatRuntimeEnvironment,
   options: FactoryOptions = {},
-  confirmations = 0,
+  { confirmations = 0, ...deployOptions }: UserDeploymentOptions,
   deployPrimitive = deployPlain
 ): Promise<DeployOutput> {
-  // TODO: `getContractFactory` gets a default signer so we may want to remove this.
   if (options.signer === undefined) {
     throw new Error("No wallet or signer defined for deployment.");
   }
@@ -166,13 +245,14 @@ export async function deployContract(
   return deployPrimitive(hre, factory, {
     initArguments,
     confirmations,
+    ...deployOptions,
   });
 }
 
 export async function deployToken(
   hre: HardhatRuntimeEnvironment,
   deploySigner: ethers.Signer,
-  { tokenAdmin, confirmations = 0, useProxy = true }: TokenV1Options & UserDeploymentOptions
+  { tokenAdmin, useProxy = true, ...txOverrides }: TokenV1Options & UserDeploymentOptions
 ): Promise<DogethereumTokenSystem> {
   const contractName = "DogeToken";
   const dogeToken = await deployContract(
@@ -180,7 +260,7 @@ export async function deployToken(
     [tokenAdmin],
     hre,
     { signer: deploySigner },
-    confirmations,
+    txOverrides,
     useProxy ? deployProxy : deployPlainWithInit
   );
   return {
@@ -207,12 +287,12 @@ export async function deployFixture(
   const signers = await hre.ethers.getSigners();
   const proxyAdmin = signers[signers.length - 1];
   const tokenAdmin = signers[0];
-  const {dogeToken} = await deployToken(hre, proxyAdmin, { tokenAdmin: tokenAdmin.address });
+  const { dogeToken } = await deployToken(hre, proxyAdmin, { tokenAdmin: tokenAdmin.address });
   dogethereumFixture = {
     dogeToken: {
       ...dogeToken,
       tokenAdmin,
-    }
-  }
+    },
+  };
   return dogethereumFixture;
 }

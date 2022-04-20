@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import { task, types } from "hardhat/config";
-import { ActionType } from "hardhat/types";
+import type { ActionType } from "hardhat/types";
 import path from "path";
 
 import {
@@ -10,19 +10,38 @@ import {
   storeDeployment,
 } from "../deploy";
 
-export interface DeployTaskArguments {
+export interface DeployTokenTaskArguments {
   confirmations: number;
   tokenAdmin: string;
   proxyAdmin?: string;
+  maxFeePerGas?: string;
+  maxPriorityFeePerGas?: string;
+  proxyGasLimit?: number;
+  tokenGasLimit?: number;
 }
 
 /**
  * This script always deploys the production token.
  */
-const deployCommand: ActionType<DeployTaskArguments> = async function (
-  { confirmations, tokenAdmin, proxyAdmin },
+const deployCommand: ActionType<DeployTokenTaskArguments> = async function (
+  {
+    confirmations,
+    tokenAdmin,
+    proxyAdmin,
+    tokenGasLimit,
+    proxyGasLimit,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+  },
   hre
 ) {
+  if (xor(maxFeePerGas !== undefined, maxPriorityFeePerGas !== undefined)) {
+    throw new Error(
+      "Both `max-fee-per-gas` and `max-priority-fee-per-gas` must be defined when overriding gas fees."
+    );
+  }
+  // TODO: validate maxFeePerGas and maxPriorityFeePerGas
+
   if (!hre.ethers.utils.isAddress(tokenAdmin)) {
     throw new Error("Invalid Ethereum address for the token administrator.");
   }
@@ -40,23 +59,25 @@ const deployCommand: ActionType<DeployTaskArguments> = async function (
   }
 
   const [deployer] = await hre.ethers.getSigners();
-
   const deployment = await deployToken(hre, deployer, {
     tokenAdmin,
     useProxy: true,
     confirmations,
+    ...(maxFeePerGas !== undefined && { maxFeePerGas: hre.ethers.utils.parseUnits(maxFeePerGas, "gwei") }),
+    ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas: hre.ethers.utils.parseUnits(maxPriorityFeePerGas, "gwei") }),
+    ...(proxyGasLimit !== undefined && { proxyGasLimit }),
+    ...(tokenGasLimit !== undefined && { logicGasLimit: tokenGasLimit }),
+    ...(proxyAdmin !== undefined && { proxyAdmin }),
   });
 
-  console.log(`Deployed token!`);
+  console.log(`Deployed token!
+  Token administrator is ${tokenAdmin}.
+  Proxy administrator is ${proxyAdmin || deployer.address}.`);
 
-  if (proxyAdmin !== undefined) {
-    await hre.upgrades.admin.changeProxyAdmin(deployment.dogeToken.contract.address, proxyAdmin);
-    console.log(`Transferred proxy administration to ${proxyAdmin}`);
-  }
   return storeDeployment(hre, deployment, deploymentDir);
 };
 
-task("dogethereum.deploy", "Deploys doge token.")
+task("dogethereum.deployToken", "Deploys doge token.")
   .addParam(
     "tokenAdmin",
     `The Ethereum address of the token administrator. This account can mint and burn tokens.`,
@@ -75,4 +96,34 @@ task("dogethereum.deploy", "Deploys doge token.")
     1,
     types.int
   )
+  .addOptionalParam(
+    "maxFeePerGas",
+    "The maximum amount of fees paid per unit of gas in Gwei." +
+      " Setting this requires setting max-priority-fee-per-gas too.",
+    undefined,
+    types.string
+  )
+  .addOptionalParam(
+    "maxPriorityFeePerGas",
+    "The maximum amount of priority fees paid per unit of gas in Gwei." +
+      " Setting this requires setting max-fee-per-gas too.",
+    undefined,
+    types.string
+  )
+  .addOptionalParam(
+    "proxyGasLimit",
+    "The maximum amount of gas allowed in proxy deploy tx execution. Autodetected if not set.",
+    undefined,
+    types.int
+  )
+  .addOptionalParam(
+    "tokenGasLimit",
+    "The maximum amount of gas allowed in token logic deploy tx execution. Autodetected if not set.",
+    undefined,
+    types.int
+  )
   .setAction(deployCommand);
+
+function xor(a: boolean, b: boolean): boolean {
+  return a !== b;
+}
