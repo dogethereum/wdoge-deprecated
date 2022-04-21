@@ -6,6 +6,7 @@ import "hardhat-gas-reporter";
 import "hardhat-prettier";
 
 import "./tasks/deploy";
+import "./tasks/inspectProxy";
 
 const config: HardhatUserConfig = {
   solidity: {

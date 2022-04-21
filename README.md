@@ -93,6 +93,7 @@ It is highly recommended to [verify](#verification) the logic contract and the p
 
 Once that is done, the deployment is finished.
 
+You can print the [proxy contract state](#reading-the-proxy-state) if you want.
 
 ### Mainnet deployment
 
@@ -223,5 +224,16 @@ See https://info.etherscan.com/types-of-contract-verification/ and https://info.
 
 TODO
 
+## Other tools
+
+### Reading the proxy state
+
+You can read the DogeToken proxy state by invoking the following Hardhat task:
+
+```sh
+hh --network your-network dogethereum.inspectProxy
+```
+
+where `your-network` must match the network name you used to deploy the contracts.
 
 [hardhat config]: (hardhat.config.ts)

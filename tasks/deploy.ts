@@ -10,6 +10,8 @@ import {
   storeDeployment,
 } from "../deploy";
 
+import { generateTaskName } from "./common";
+
 export interface DeployTokenTaskArguments {
   confirmations: number;
   tokenAdmin: string;
@@ -77,7 +79,9 @@ const deployCommand: ActionType<DeployTokenTaskArguments> = async function (
   return storeDeployment(hre, deployment, deploymentDir);
 };
 
-task("dogethereum.deployToken", "Deploys doge token.")
+export const deployTaskName = generateTaskName("deployToken");
+
+task(deployTaskName, "Deploys doge token.")
   .addParam(
     "tokenAdmin",
     `The Ethereum address of the token administrator. This account can mint and burn tokens.`,

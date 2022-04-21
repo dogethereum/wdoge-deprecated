@@ -19,6 +19,10 @@ interface DeployOutput {
    * Encoded call data for the initialization function used in the proxy constructor.
    */
   initData?: string;
+  /**
+   * Address of the logic contract if this is a proxy.
+   */
+  logicContractAddress?: string;
 }
 
 export interface DogethereumContract extends DeployOutput {
@@ -115,6 +119,21 @@ type DeployF = (
   options: ContractOptions
 ) => Promise<DeployOutput>;
 
+/**
+ * This type describes the deployment artifact.
+ */
+interface DeploymentInfo {
+  chainId: number;
+  contracts: {
+    dogeToken: ContractInfo;
+  };
+}
+
+/**
+ * This type describes the deployment artifact information for a contract.
+ * Note that this is not an exhaustive description.
+ * The actual artifact may have additional fields.
+ */
 interface ContractInfo {
   abi: any[];
   contractName: string;
@@ -122,12 +141,7 @@ interface ContractInfo {
   address: string;
 }
 
-interface DeploymentInfo {
-  chainId: number;
-  contracts: {
-    dogeToken: ContractInfo;
-  };
-}
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 export const DEPLOYMENT_JSON_NAME = "deployment.json";
 
@@ -170,6 +184,45 @@ export async function storeDeployment(
 
   const deploymentJsonPath = path.join(deploymentDir, DEPLOYMENT_JSON_NAME);
   await fs.writeJson(deploymentJsonPath, deploymentInfo);
+}
+
+async function reifyContract(
+  hre: HardhatRuntimeEnvironment,
+  { abi, address, contractName }: ContractInfo
+) {
+  const contract = await hre.ethers.getContractAt(abi, address);
+  return {
+    name: contractName,
+    contract,
+  };
+}
+
+export async function loadDeployment(
+  hre: HardhatRuntimeEnvironment,
+  deploymentDir: string = getDefaultDeploymentPath(hre)
+): Promise<DogethereumTokenSystem> {
+  const deploymentInfoPath = path.join(deploymentDir, DEPLOYMENT_JSON_NAME);
+  const deploymentInfo: Readonly<DeploymentInfo> = await fs.readJson(deploymentInfoPath);
+
+  const chainId = (await hre.ethers.provider.getNetwork()).chainId;
+  if (chainId !== deploymentInfo.chainId) {
+    throw new Error(
+      `Expected a deployment for network with chainId ${chainId} but found chainId ${deploymentInfo.chainId} instead.`
+    );
+  }
+
+  const dogeToken = await reifyContract(hre, deploymentInfo.contracts.dogeToken);
+
+  return {
+    dogeToken: {
+      ...dogeToken,
+      tokenAdmin: await dogeToken.contract.connect(hre.ethers.provider).owner({ from: ZERO_ADDRESS }),
+      proxyAdmin: await hre.upgrades.erc1967.getAdminAddress(dogeToken.contract.address),
+      logicContractAddress: await hre.upgrades.erc1967.getImplementationAddress(
+        dogeToken.contract.address
+      ),
+    },
+  };
 }
 
 const deployProxy: DeployF = async (
