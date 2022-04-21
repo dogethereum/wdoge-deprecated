@@ -65,16 +65,24 @@ const deployCommand: ActionType<DeployTokenTaskArguments> = async function (
     tokenAdmin,
     useProxy: true,
     confirmations,
-    ...(maxFeePerGas !== undefined && { maxFeePerGas: hre.ethers.utils.parseUnits(maxFeePerGas, "gwei") }),
-    ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas: hre.ethers.utils.parseUnits(maxPriorityFeePerGas, "gwei") }),
+    ...(maxFeePerGas !== undefined && {
+      maxFeePerGas: hre.ethers.utils.parseUnits(maxFeePerGas, "gwei"),
+    }),
+    ...(maxPriorityFeePerGas !== undefined && {
+      maxPriorityFeePerGas: hre.ethers.utils.parseUnits(maxPriorityFeePerGas, "gwei"),
+    }),
     ...(proxyGasLimit !== undefined && { proxyGasLimit }),
     ...(tokenGasLimit !== undefined && { logicGasLimit: tokenGasLimit }),
     ...(proxyAdmin !== undefined && { proxyAdmin }),
   });
 
   console.log(`Deployed token!
+  Token address is ${deployment.dogeToken.contract.address}.
   Token administrator is ${tokenAdmin}.
-  Proxy administrator is ${proxyAdmin || deployer.address}.`);
+  Proxy administrator is ${proxyAdmin || deployer.address}.
+  The proxy currently forwards calls to implementation contract at address ${
+    deployment.dogeToken.logicContractAddress
+  }`);
 
   return storeDeployment(hre, deployment, deploymentDir);
 };

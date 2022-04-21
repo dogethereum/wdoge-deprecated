@@ -151,7 +151,7 @@ export function getDefaultDeploymentPath(hre: HardhatRuntimeEnvironment): string
 
 async function getContractDescription(
   hre: HardhatRuntimeEnvironment,
-  { contract, name, proxyAdmin, initData }: DogethereumContract
+  { contract, name, proxyAdmin, initData, logicContractAddress }: DogethereumContract
 ) {
   const artifact = await hre.artifacts.readArtifact(name);
   return {
@@ -160,7 +160,7 @@ async function getContractDescription(
     sourceName: artifact.sourceName,
     address: contract.address,
     ...(proxyAdmin !== undefined && {
-      logicContractAddress: await hre.upgrades.erc1967.getImplementationAddress(contract.address),
+      logicContractAddress,
       proxyAdmin,
       initData,
     }),
@@ -262,6 +262,9 @@ const deployProxy: DeployF = async (
     contract,
     proxyAdmin,
     initData: logicFactory.interface.encodeFunctionData("initialize", initArguments),
+    logicContractAddress: await hre.upgrades.erc1967.getImplementationAddress(
+      contract.address
+    ),
   };
 };
 
