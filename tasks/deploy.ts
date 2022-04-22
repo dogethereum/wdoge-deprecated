@@ -10,7 +10,7 @@ import {
   storeDeployment,
 } from "../deploy";
 
-import { generateTaskName } from "./common";
+import { generateTaskName, xor } from "./common";
 
 export interface DeployTokenTaskArguments {
   confirmations: number;
@@ -135,7 +135,3 @@ task(deployTaskName, "Deploys doge token.")
     types.int
   )
   .setAction(deployCommand);
-
-function xor(a: boolean, b: boolean): boolean {
-  return a !== b;
-}
