@@ -7,6 +7,7 @@ import "hardhat-prettier";
 
 import "./tasks/deploy";
 import "./tasks/inspectProxy";
+import "./tasks/upgrade";
 
 const config: HardhatUserConfig = {
   solidity: {

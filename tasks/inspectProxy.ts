@@ -22,9 +22,9 @@ Ensure the correct network is passed to the --network parameter.`
   const { dogeToken } = await loadDeployment(hre, deploymentDir);
 
   console.log(`DogeToken proxy:
-  Token address is ${chalk.green(dogeToken.contract.address)}.
-  Token administrator is ${chalk.green(dogeToken.tokenAdmin)}.
-  Proxy administrator is ${chalk.green(dogeToken.proxyAdmin)}.
+  Token address is ${chalk.green(dogeToken.contract.address)}
+  Token administrator is ${chalk.green(dogeToken.tokenAdmin)}
+  Proxy administrator is ${chalk.green(dogeToken.proxyAdmin)}
   The proxy currently forwards calls to implementation contract at address ${chalk.green(dogeToken.logicContractAddress)}`);
 };
 

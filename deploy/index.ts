@@ -57,18 +57,19 @@ export interface DogethereumTokenFixture {
   dogeToken: DogethereumTestToken;
 }
 
-export interface ContractOptions {
-  initArguments: InitializerArguments;
+export type ContractOptions = ContractOptionsSimple & TxOverrides;
+
+interface ContractOptionsSimple {
+  initArguments: ContractCallArguments;
   confirmations: number;
-  maxFeePerGas?: ethers.BigNumber;
-  maxPriorityFeePerGas?: ethers.BigNumber;
-  logicGasLimit?: number;
   proxyGasLimit?: number;
   proxyAdmin?: string;
 }
-type InitializerArguments = any[];
+export type ContractCallArguments = unknown[];
 
-export type UserDeploymentOptions = UserDeploymentOptionsGeneric & AllUserDeploymentOptions;
+export type UserDeploymentOptions = UserDeploymentOptionsGeneric &
+  TxOverrides &
+  AllUserDeploymentOptions;
 type AllUserDeploymentOptions =
   | UserProxyDeploymentOptions
   | UserPlainDeploymentOptions
@@ -77,15 +78,7 @@ interface UnspecifiedKindDeploymentOptions {
   useProxy?: never;
 }
 
-interface UserDeploymentOptionsGeneric {
-  /**
-   * Number of block confirmations to wait for when deploying a contract.
-   */
-  confirmations?: number;
-  /**
-   * Use transparent proxies to deploy main contracts
-   */
-  useProxy?: boolean;
+interface TxOverrides {
   /**
    * Maximum fee per unit of gas burnt. See EIP 1559.
    */
@@ -98,6 +91,17 @@ interface UserDeploymentOptionsGeneric {
    * Maximum amount of gas allowed for logic contract deployment.
    */
   logicGasLimit?: number;
+}
+
+interface UserDeploymentOptionsGeneric {
+  /**
+   * Number of block confirmations to wait for when deploying a contract.
+   */
+  confirmations?: number;
+  /**
+   * Use transparent proxies to deploy main contracts
+   */
+  useProxy?: boolean;
 }
 
 interface UserProxyDeploymentOptions {
@@ -135,15 +139,41 @@ interface DeploymentInfo {
  * The actual artifact may have additional fields.
  */
 interface ContractInfo {
-  abi: any[];
+  abi: unknown[];
   contractName: string;
   sourceName: string;
   address: string;
 }
 
+export interface UpgradePreparation {
+  /**
+   * Implementation contract address.
+   */
+  implementation: string;
+  /**
+   *  ABI encoded call data for initializer function.
+   */
+  initData?: string;
+}
+
+export interface ContractCall {
+  name: string;
+  args: ContractCallArguments;
+}
+
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 export const DEPLOYMENT_JSON_NAME = "deployment.json";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function assertContractCall(obj: any): asserts obj is ContractCall {
+  if (typeof obj.name !== "string")
+    throw new Error("Contract call descriptor must have a 'name' field of type string.");
+  if (!Array.isArray(obj.args))
+    throw new Error(
+      "Contract call descriptor must have an array of arguments in the 'args' field."
+    );
+}
 
 export function getDefaultDeploymentPath(hre: HardhatRuntimeEnvironment): string {
   return path.join(hre.config.paths.root, "deployment", hre.network.name);
@@ -207,7 +237,8 @@ export async function loadDeployment(
   const chainId = (await hre.ethers.provider.getNetwork()).chainId;
   if (chainId !== deploymentInfo.chainId) {
     throw new Error(
-      `Expected a deployment for network with chainId ${chainId} but found chainId ${deploymentInfo.chainId} instead.`
+      `Expected a deployment for network with chainId ${chainId}
+but found chainId ${deploymentInfo.chainId} instead.`
     );
   }
 
@@ -216,7 +247,9 @@ export async function loadDeployment(
   return {
     dogeToken: {
       ...dogeToken,
-      tokenAdmin: await dogeToken.contract.connect(hre.ethers.provider).owner({ from: ZERO_ADDRESS }),
+      tokenAdmin: await dogeToken.contract
+        .connect(hre.ethers.provider)
+        .owner({ from: ZERO_ADDRESS }),
       proxyAdmin: await hre.upgrades.erc1967.getAdminAddress(dogeToken.contract.address),
       logicContractAddress: await hre.upgrades.erc1967.getImplementationAddress(
         dogeToken.contract.address
@@ -262,9 +295,7 @@ const deployProxy: DeployF = async (
     contract,
     proxyAdmin,
     initData: logicFactory.interface.encodeFunctionData("initialize", initArguments),
-    logicContractAddress: await hre.upgrades.erc1967.getImplementationAddress(
-      contract.address
-    ),
+    logicContractAddress: await hre.upgrades.erc1967.getImplementationAddress(contract.address),
   };
 };
 
@@ -287,7 +318,7 @@ const deployPlainWithInit: DeployF = async (hre, factory, { initArguments, confi
 
 export async function deployContract(
   contractName: string,
-  initArguments: InitializerArguments,
+  initArguments: ContractCallArguments,
   hre: HardhatRuntimeEnvironment,
   options: FactoryOptions = {},
   { confirmations = 0, ...deployOptions }: UserDeploymentOptions,
@@ -326,6 +357,34 @@ export async function deployToken(
       tokenAdmin,
     },
   };
+}
+
+export async function prepareUpgradeToken(
+  hre: HardhatRuntimeEnvironment,
+  implementationFactory: ethers.ContractFactory,
+  dogeTokenProxy: string,
+  { maxFeePerGas, maxPriorityFeePerGas, logicGasLimit }: UserDeploymentOptions,
+  callDescriptor?: ContractCall
+): Promise<UpgradePreparation> {
+  const upgrade: Partial<UpgradePreparation> = {};
+  if (callDescriptor !== undefined) {
+    const functionFragment = implementationFactory.interface.functions[callDescriptor.name];
+    if (functionFragment === undefined) {
+      throw new Error(`Function ${callDescriptor.name} not found in implementation ABI.`);
+    }
+    upgrade.initData = implementationFactory.interface.encodeFunctionData(
+      functionFragment,
+      callDescriptor.args
+    );
+  }
+
+  const implementation = await hre.upgrades.prepareUpgrade(dogeTokenProxy, implementationFactory, {
+    ...(maxFeePerGas !== undefined && { maxFeePerGas }),
+    ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas }),
+    ...(logicGasLimit !== undefined && { implementationGasLimit: logicGasLimit }),
+  });
+
+  return { ...upgrade, implementation };
 }
 
 let dogethereumFixture: DogethereumTokenFixture;
