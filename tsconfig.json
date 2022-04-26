@@ -4,6 +4,8 @@
     "target": "es2020",
     "module": "commonjs",
     "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "incremental": true,
     "esModuleInterop": true,
     "outDir": "dist",
     "resolveJsonModule": true,
