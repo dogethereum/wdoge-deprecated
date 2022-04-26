@@ -320,7 +320,7 @@ This assumes that the proxy administrator is a [gnosis safe](https://gnosis-safe
 11. Approve the transaction so it is signed.
 12. Wait until the transaction has enough confirmations.
 
-The transaction should have an `Upgraded` event visible in the `Logs` tab in Etherscan.
+The transaction should have an `Upgraded` event visible in the `Logs` tab in Etherscan. You can use the [proxy inspection task](#reading-the-proxy-state) to check out the implementation address too.
 
 After executing the upgrade, it is important to issue a logic contract address redetection in etherscan.
 This can be done by going to the `Contract` tab, pressing the `More Options` button and choosing the `Is this a proxy?` option.
