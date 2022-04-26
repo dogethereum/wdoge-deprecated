@@ -35,7 +35,7 @@ Use `npm test` to run them.
 1. Select your account.
 2. Go to `Assets` tab.
 3. Click `Import tokens`.
-4. Paste the token contract address. The contract should have the `TransparentUpgradeableProxy` contract name.
+4. Paste the token contract address. The contract should have the `DogethereumProxy` contract name.
 5. Wait for the Token Symbol and Token Decimals to be auto detected.
 6. Click `Add Custom Token`.
 7. Click `Import Tokens`.
