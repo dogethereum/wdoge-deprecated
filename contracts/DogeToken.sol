@@ -36,4 +36,8 @@ contract DogeToken is Initializable, ERC20Upgradeable, OwnableUpgradeable {
   function decimals() public view virtual override returns (uint8) {
     return 8;
   }
+
+  function getVersion() public pure returns (uint256) {
+    return 1;
+  }
 }
