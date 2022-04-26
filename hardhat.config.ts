@@ -1,7 +1,7 @@
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-etherscan";
 import type { HardhatUserConfig } from "hardhat/types";
-import "@scnale/hardhat-upgrades";
+import "@dogethereum/hardhat-upgrades";
 import "hardhat-gas-reporter";
 import "hardhat-prettier";
 
