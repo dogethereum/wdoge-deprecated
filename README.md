@@ -226,7 +226,7 @@ There is an upgrade task that helps prepare an upgrade so it can be finalized us
 
 The upgrade process consists of the following two transactions:
 
-1. The new logic contract is deployed.
+1. The new logic contract deployment transaction.
   - This step uses the upgrades plugin.
   - The deployment transaction is skipped if there already is a deployment present in the network.
   - If you want to force a redeployment, it may be necessary to alter the upgrades plugin manifest in `.openzeppelin`.
@@ -300,7 +300,27 @@ You can copy and paste the hex encoded string into the `data (bytes)` field of t
 
 #### Executing an upgrade
 
-TODO
+This assumes that the proxy administrator is a [gnosis safe](https://gnosis-safe.io/) multisig contract.
+
+1. Open the [gnosis safe application](https://gnosis-safe.io/app/).
+2. Click "New Transaction"
+3. Click "Contract interaction"
+4. Paste the DogeToken proxy address. See [here](#reading-the-proxy-state) to get the address.
+5. Paste the `DogethereumProxy` ABI. To get the ABI:
+  1. Run `hh compile` to ensure contracts are compiled.
+  2. Run `jq .abi artifacts/contracts/DogethereumProxy.sol/DogethereumProxy.json` to get the ABI.
+6. Select either `upgradeTo` or `upgradeToAndCall` as the method.
+  - If there's no migration or initialization contract call then you want the `upgradeTo` method.
+7. Paste the new logic contract address in the `newImplementation` textbox.
+8. (Optional) If you're using the `upgradeToAndCall`, then
+  1. input the amount of ETH to send in the `Value` textbox.
+  2. input the encoded migration call in the `data` textbox.
+9. Click the `Preview` button.
+10. Click the `Submit` button.
+11. Approve the transaction so it is signed.
+12. Wait until the transaction has enough confirmations.
+
+The transaction should have an `Upgraded` event in etherscan.
 
 After executing the upgrade, it is important to issue a logic contract address redetection in etherscan.
 This can be done by going to the `Contract` tab, pressing the `More Options` button and choosing the `Is this a proxy?` option.
