@@ -198,7 +198,7 @@ With all these you can now verify the proxy contract:
 ```
 2. Run the Hardhat verify task:
 ```sh
-hh --network your-network verify your-dogetoken-proxy-contract-address your-dogetoken-logic-contract-address proxy-admin-contract-address encoded-initializer-arguments
+hh --network your-network verify your-dogetoken-proxy-contract-address your-dogetoken-logic-contract-address proxy-admin-address encoded-initializer-arguments
 ```
 
 This verifies the proxy source code but there is more.
