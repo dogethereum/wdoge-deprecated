@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import fs from "fs-extra";
 import { task, types } from "hardhat/config";
 import type { ActionType } from "hardhat/types";
@@ -78,10 +79,10 @@ Ensure the correct network is passed to the --network parameter.`
   );
 
   console.log(
-    `Token logic is deployed at address ${upgrade.implementation}.${
+    `Token logic is deployed at address ${chalk.green(upgrade.implementation)}${
       upgrade.initData !== undefined
         ? `
-Token migration call data is ${upgrade.initData}`
+Token migration call data is ${chalk.green(upgrade.initData)}`
         : ""
     }`
   );
