@@ -222,7 +222,89 @@ See https://info.etherscan.com/types-of-contract-verification/ and https://info.
 
 ### Upgrades
 
+There is an upgrade task that helps prepare an upgrade so it can be finalized using a multisig wallet or cold wallet.
+
+The upgrade process consists of the following two transactions:
+
+1. The new logic contract is deployed.
+  - This step uses the upgrades plugin.
+  - The deployment transaction is skipped if there already is a deployment present in the network.
+  - If you want to force a redeployment, it may be necessary to alter the upgrades plugin manifest in `.openzeppelin`.
+  - If the upgrades plugin finds an incompatibility in the new logic contract, it will abort the deployment.
+2. The proxy upgrade transaction itself.
+  - This transaction can call an initialization function optionally. See [this section](#specifying-migration-call) for more details.
+
+#### Preparing the upgrade
+
+There is only one task parameter that is mandatory. The `--new-logic-contract` parameter must be set to the name of the logic contract. If the contract name is not unique in the contracts directory, the fully qualified name may be necessary instead. E.g. the fully qualified name for `DummyToken` is `contracts/DummyToken.sol:DummyToken`.
+
+Let's see an example of the task usage:
+
+```sh
+$ hh --network rinkeby dogethereum.upgradeToken --new-logic-contract DummyToken
+Token logic is deployed at address 0x805439bc66707b4427D03062fC8379FB84f3723B.
+```
+
+Other task parameters can be seen invoking `hh dogethereum.upgradeToken --help`.
+
+In particular, you may be interested in [specifying a migration or initialization call](#specifying-migration-call) to be done when the upgrade is executed.
+
+#### Specifying migration call
+
+The upgrade task allows you to specify the migration contract call with a javascript module.
+
+For example, if you have a contract like this:
+
+```solidity
+struct TXO {
+  bytes32 txHash;
+  uint32 index;
+}
+
+contract Foo {
+  function initialize(uint version, string name, TXO memory txOutput, bytes b) public { ... }
+}
+```
+
+The module should look like this:
+```js
+module.exports = {
+  name: "initialize",
+  args: [
+    30,
+    "New name",
+    {
+      // bytes32 have to be 0x-prefixed
+      txHash: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      index: 3,
+    },
+    // bytes have to be 0x-prefixed
+    "0xcafe",
+  ]
+};
+```
+
+You need to pass the path of this module to the `--call-args` parameter of the `dogethereum.upgradeToken` task. E.g:
+
+```sh
+hh --network rinkeby dogethereum.upgradeToken --new-logic-contract Foo --call-args initialize_params.js
+```
+
+When invoking the upgrade task, you'll see a message like this:
+
+```
+Token migration call data is 0x454b0608000000000000000000000000000000000000000000000000000000000000001e
+```
+
+You can copy and paste the hex encoded string into the `data (bytes)` field of the `upgradeToAndCall` function to invoke it atomically during the upgrade transaction.
+
+#### Executing an upgrade
+
 TODO
+
+After executing the upgrade, it is important to issue a logic contract address redetection in etherscan.
+This can be done by going to the `Contract` tab, pressing the `More Options` button and choosing the `Is this a proxy?` option.
+See [the verification section for proxies](#proxy-contracts) for more details.
 
 ## Other tools
 
