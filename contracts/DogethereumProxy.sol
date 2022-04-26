@@ -4,6 +4,10 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
+/**
+ * This contract allows us to work around a limitation of
+ * the hardhat-etherscan plugin to verify the proxy source code.
+ */
 contract DogethereumProxy is TransparentUpgradeableProxy {
 	constructor(address logic, address admin, bytes memory data) TransparentUpgradeableProxy(logic, admin, data) {}
 }
