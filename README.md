@@ -59,6 +59,10 @@ To send tokens to another account
 
 Eventually, the transaction should be confirmed.
 
+### Getting the token ABI
+
+First, run `hh compile`. Then run `jq .abi artifacts/contracts/DogeToken.sol/DogeToken.json`.
+
 ## Deployment
 
 There is a Hardhat task that deploys the token. It is meant for both testnet and mainnet networks.
