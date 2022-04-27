@@ -11,7 +11,7 @@ contract DogeToken is Initializable, ERC20Upgradeable, OwnableUpgradeable {
   /// @custom:oz-upgrades-unsafe-allow constructor
   constructor() initializer {}
 
-  function initialize(address tokenAdmin) public initializer {
+  function initialize(address tokenAdmin) external initializer {
     // Contract initialization
     // TODO: decide token name and symbol
     __ERC20_init("DogeToken", "DOGE");
@@ -33,11 +33,11 @@ contract DogeToken is Initializable, ERC20Upgradeable, OwnableUpgradeable {
    * @dev Returns the number of decimals used to get its human representation.
    * Dogecoin has 8 decimals so that's what we use here too.
    */
-  function decimals() public view virtual override returns (uint8) {
+  function decimals() public pure virtual override returns (uint8) {
     return 8;
   }
 
-  function getVersion() public pure returns (uint256) {
+  function getVersion() external pure returns (uint256) {
     return 1;
   }
 }
