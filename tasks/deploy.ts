@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import fs from "fs-extra";
 import { task, types } from "hardhat/config";
 import type { ActionType } from "hardhat/types";
@@ -77,11 +78,11 @@ const deployCommand: ActionType<DeployTokenTaskArguments> = async function (
   });
 
   console.log(`Deployed token!
-  Token address is ${deployment.dogeToken.contract.address}.
-  Token administrator is ${tokenAdmin}.
-  Proxy administrator is ${proxyAdmin || deployer.address}.
+  Token address is ${chalk.green(deployment.dogeToken.contract.address)}
+  Token administrator is ${chalk.green(tokenAdmin)}
+  Proxy administrator is ${chalk.green(proxyAdmin || deployer.address)}
   The proxy currently forwards calls to implementation contract at address ${
-    deployment.dogeToken.logicContractAddress
+    chalk.green(deployment.dogeToken.logicContractAddress)
   }`);
 
   return storeDeployment(hre, deployment, deploymentDir);
