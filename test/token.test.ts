@@ -600,6 +600,24 @@ describe("DogeToken", function () {
   });
 });
 
+
+describe("DogeToken initialize function", function () {
+  isolateTests();
+
+  it("initialize doesn't work in logic contract", async function() {
+    const tokenFactory = await hre.ethers.getContractFactory("DogeToken");
+    const token = await tokenFactory.deploy();
+    const validAddress = await tokenFactory.signer.getAddress();
+    await expectFailure(
+      () => token.initialize(validAddress),
+      (error) => {
+        assert.include(error.message, "Initializable: contract is already initialized");
+      }
+    )
+  });
+});
+
+
 async function expectTransfer(
   tx: ethers.ContractTransaction,
   from: SignerWithAddress | string,
