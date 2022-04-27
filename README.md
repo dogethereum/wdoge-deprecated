@@ -97,30 +97,27 @@ You can print the [proxy contract state](#reading-the-proxy-state) if you want.
 
 ### Mainnet deployment
 
-TODO
-
 Three accounts are needed for deployment:
 - An externally owned account that signs the deployment transactions. We will call it the deployer address.
 - One is the proxy administrator. This should be a multisig wallet.
 - Another one is the token administrator. This should be a multisig wallet.
 
 These are the steps for a successful deploy on mainnet:
-1. Backup the `.openzeppelin` directory and remove it. Note that this means that logic contracts won't be reused if already deployed.
-2. Set the `networks` property of your [hardhat config] like this:
+1. Set the `networks` property of your [hardhat config] like this:
 ```js
 {
   networks: {
-    rinkeby: {
-      url: "https://:your-secret@rinkeby.infura.io/v3/your-project-id",
+    mainnet: {
+      url: "https://:your-secret@mainnet.infura.io/v3/your-project-id",
       accounts: ["your-hex-encoded-private-key"],
     },
   },
 }
 ```
-3. Ensure your deployer address has enough ether for deployment. The total deployment cost shouldn't be higher than 2M gas.
-4. Invoke the Hardhat deploy task:
+2. Ensure your deployer address has enough ether for deployment. The total deployment cost shouldn't be higher than 2M gas. You may want to specify [base fee and priority fees](#other-deployment-options) in the next step.
+3. Invoke the Hardhat deploy task:
 ```sh
-hh --network rinkeby dogethereum.deployToken --token-admin tokenAdminAddress --proxy-admin proxyAdminAddress
+hh --network mainnet dogethereum.deployToken --token-admin tokenAdminAddress --proxy-admin proxyAdminAddress
 ```
 
 ### Other deployment options
