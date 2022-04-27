@@ -99,6 +99,30 @@ You can print the [proxy contract state](#reading-the-proxy-state) if you want.
 
 TODO
 
+Three accounts are needed for deployment:
+- An externally owned account that signs the deployment transactions. We will call it the deployer address.
+- One is the proxy administrator. This should be a multisig wallet.
+- Another one is the token administrator. This should be a multisig wallet.
+
+These are the steps for a successful deploy on mainnet:
+1. Backup the `.openzeppelin` directory and remove it. Note that this means that logic contracts won't be reused if already deployed.
+2. Set the `networks` property of your [hardhat config] like this:
+```js
+{
+  networks: {
+    rinkeby: {
+      url: "https://:your-secret@rinkeby.infura.io/v3/your-project-id",
+      accounts: ["your-hex-encoded-private-key"],
+    },
+  },
+}
+```
+3. Ensure your deployer address has enough ether for deployment. The total deployment cost shouldn't be higher than 2M gas.
+4. Invoke the Hardhat deploy task:
+```sh
+hh --network rinkeby dogethereum.deployToken --token-admin tokenAdminAddress --proxy-admin proxyAdminAddress
+```
+
 ### Other deployment options
 
 The deploy task has other options that may be useful in certain network conditions. All options can be consulted by invoking:
@@ -207,9 +231,6 @@ Etherscan has `Read as proxy` and `Write as proxy` features that are enabled onc
 To enable these, it is necessary to request Etherscan to recognize the contract as a proxy and to detect the implementation or logic contract address.
 
 This can be done by going to the `Contract` tab, pressing the `More Options` button and choosing the `Is this a proxy?` option.
-
-
-
 
 
 #### Similar match
