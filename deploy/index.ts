@@ -276,7 +276,7 @@ const deployProxy: DeployF = async (
   }
 
   const proxyFactory = await hre.ethers.getContractFactory(
-    "contracts/DogethereumProxy.sol:DogethereumProxy",
+    "DogethereumProxy",
     logicFactory.signer
   );
   const contract = await hre.upgrades.deployProxy(logicFactory, initArguments, {
