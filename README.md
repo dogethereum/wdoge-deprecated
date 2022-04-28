@@ -67,7 +67,7 @@ First, run `hh compile`. Then run `jq .abi artifacts/contracts/DogeToken.sol/Dog
 
 There is a Hardhat task that deploys the token. It is meant for both testnet and mainnet networks.
 
-Here are step-by-step instructions for deployment. They assume an Infura JSON-RPC endpoint is used.
+Here are step-by-step instructions for deployment. They assume an [Infura JSON-RPC endpoint](https://infura.io) is used.
 
 ### Rinkeby deployment
 
@@ -207,9 +207,11 @@ constructor(address _logic, address admin_, bytes memory _data) {}
 
 Note that you need these values as they were sent in the deployment transaction, it does not matter if the contract later modified the state variables associated with these parameters. For this reason, the deploy task stores the arguments into the deployment artifact.
 
-1. The logic contract address for the `DogeToken` is the same one as explained [here](#logic-contracts). Run `jq .contracts.dogeToken.logicContractAddress deployment/your-network/deployment.json` to get it.
-2. The admin argument is the initial administrator account. Run `jq .contracts.dogeToken.proxyAdmin deployment/your-network/deployment.json` to get it.
-3. The `_data` parameter is the ABI encoded call to the initializer function in the logic contract. Run `jq .contracts.dogeToken.initData deployment/your-network/deployment.json` to get it.
+1. The logic contract address for the `DogeToken` is the same one as explained [here](#logic-contracts).
+2. The admin argument is the initial administrator account.
+3. The `_data` parameter is the ABI encoded call to the initializer function in the logic contract.
+
+Run `jq '.contracts.dogeToken | {logicContractAddress, proxyAdmin, initData}' deployment/your-network/deployment.json` to get them.
 
 With all these you can now verify the proxy contract:
 
