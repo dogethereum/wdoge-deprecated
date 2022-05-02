@@ -1,5 +1,5 @@
 import type ethers from "ethers";
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { HardhatRuntimeEnvironment, CompilerOutputContract } from "hardhat/types";
 import type { FactoryOptions } from "@nomiclabs/hardhat-ethers/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import fs from "fs-extra";
@@ -143,6 +143,7 @@ interface ContractInfo {
   contractName: string;
   sourceName: string;
   address: string;
+  bytecodeAndSymbols: CompilerOutputContract["evm"];
 }
 
 export interface UpgradePreparation {
@@ -182,18 +183,26 @@ export function getDefaultDeploymentPath(hre: HardhatRuntimeEnvironment): string
 async function getContractDescription(
   hre: HardhatRuntimeEnvironment,
   { contract, name, proxyAdmin, initData, logicContractAddress }: DogethereumContract
-) {
-  const artifact = await hre.artifacts.readArtifact(name);
+): Promise<ContractInfo> {
+  const { sourceName, contractName, abi } = await hre.artifacts.readArtifact(name);
+  const fqName = `${sourceName}:${contractName}`;
+  const build = await hre.artifacts.getBuildInfo(fqName);
+  if (build === undefined) {
+    throw new Error(`Build info not found for ${fqName} contract`);
+  }
+  const bytecodeAndSymbols = build.output.contracts[sourceName][contractName].evm;
+
   return {
-    abi: artifact.abi,
-    contractName: artifact.contractName,
-    sourceName: artifact.sourceName,
+    abi: abi,
+    contractName: contractName,
+    sourceName: sourceName,
     address: contract.address,
     ...(proxyAdmin !== undefined && {
       logicContractAddress,
       proxyAdmin,
       initData,
     }),
+    bytecodeAndSymbols,
   };
 }
 
@@ -275,10 +284,7 @@ const deployProxy: DeployF = async (
     proxyAdmin = await logicFactory.signer.getAddress();
   }
 
-  const proxyFactory = await hre.ethers.getContractFactory(
-    "DogethereumProxy",
-    logicFactory.signer
-  );
+  const proxyFactory = await hre.ethers.getContractFactory("DogethereumProxy", logicFactory.signer);
   const contract = await hre.upgrades.deployProxy(logicFactory, initArguments, {
     kind: "transparent",
     ...(maxFeePerGas !== undefined && { maxFeePerGas }),
