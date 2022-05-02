@@ -21,6 +21,7 @@ export interface DeployTokenTaskArguments {
   maxPriorityFeePerGas?: string;
   proxyGasLimit?: number;
   tokenGasLimit?: number;
+  nonce?: number;
 }
 
 /**
@@ -35,6 +36,7 @@ const deployCommand: ActionType<DeployTokenTaskArguments> = async function (
     proxyGasLimit,
     maxFeePerGas,
     maxPriorityFeePerGas,
+    nonce
   },
   hre
 ) {
@@ -75,15 +77,16 @@ const deployCommand: ActionType<DeployTokenTaskArguments> = async function (
     ...(proxyGasLimit !== undefined && { proxyGasLimit }),
     ...(tokenGasLimit !== undefined && { logicGasLimit: tokenGasLimit }),
     ...(proxyAdmin !== undefined && { proxyAdmin }),
+    ...(nonce !== undefined && { nonce }),
   });
 
   console.log(`Deployed token!
   Token address is ${chalk.green(deployment.dogeToken.contract.address)}
   Token administrator is ${chalk.green(tokenAdmin)}
   Proxy administrator is ${chalk.green(proxyAdmin || deployer.address)}
-  The proxy currently forwards calls to implementation contract at address ${
-    chalk.green(deployment.dogeToken.logicContractAddress)
-  }`);
+  The proxy currently forwards calls to implementation contract at address ${chalk.green(
+    deployment.dogeToken.logicContractAddress
+  )}`);
 
   return storeDeployment(hre, deployment, deploymentDir);
 };
@@ -132,6 +135,13 @@ task(deployTaskName, "Deploys doge token.")
   .addOptionalParam(
     "tokenGasLimit",
     "The maximum amount of gas allowed in token logic deploy tx execution. Autodetected if not set.",
+    undefined,
+    types.int
+  )
+  .addOptionalParam(
+    "nonce",
+    "The first nonce to be used when creating a transaction." +
+      " Other transactions will use consecutive numbers to this nonce.",
     undefined,
     types.int
   )

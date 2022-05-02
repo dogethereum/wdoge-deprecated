@@ -91,6 +91,10 @@ interface TxOverrides {
    * Maximum amount of gas allowed for logic contract deployment.
    */
   logicGasLimit?: number;
+  /**
+   * The Ethereum tx nonce. This is a sequence number associated with the signing account.
+   */
+  nonce?: number;
 }
 
 interface UserDeploymentOptionsGeneric {
@@ -278,6 +282,7 @@ const deployProxy: DeployF = async (
     logicGasLimit,
     proxyGasLimit,
     proxyAdmin,
+    nonce,
   }
 ) => {
   if (proxyAdmin === undefined) {
@@ -294,6 +299,7 @@ const deployProxy: DeployF = async (
       factory: proxyFactory,
     },
     ...(logicGasLimit !== undefined && { implementationGasLimit: logicGasLimit }),
+    ...(nonce !== undefined && { nonce }),
     proxyAdmin,
   });
   await contract.deployTransaction.wait(confirmations);

@@ -7,7 +7,7 @@
     "@openzeppelin/contracts-upgradeable": "^4.5.2"
   },
   "devDependencies": {
-    "@dogethereum/hardhat-upgrades": "^1.17.1",
+    "@dogethereum/hardhat-upgrades": "^1.17.3",
     "@nomiclabs/hardhat-ethers": "^2.0.5",
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
     "@openzeppelin/contracts": "^4.5.0",
