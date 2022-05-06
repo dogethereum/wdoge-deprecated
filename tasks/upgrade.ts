@@ -60,7 +60,6 @@ Ensure the correct network is passed to the --network parameter.`
   }
   const { dogeToken } = await loadDeployment(hre, deploymentDir);
 
-  // TODO: prepare contract factory for implementation and initializer call
   const upgrade = await prepareUpgradeToken(
     hre,
     logicFactory,
