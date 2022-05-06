@@ -1,4 +1,4 @@
-# Doge token contract
+# wDoge token contract
 
 The Dogecoin-Ethereum bridge requires a token to represent doges in the Ethereum network. This repository contains a token contract that fulfills this goal.
 
@@ -35,7 +35,7 @@ Use `npm test` to run them.
 1. Select your account.
 2. Go to `Assets` tab.
 3. Click `Import tokens`.
-4. Paste the token contract address. The contract should have the `DogethereumProxy` contract name.
+4. Paste the token contract address. The contract should have the `WDogeProxy` contract name.
 5. Wait for the Token Symbol and Token Decimals to be auto detected.
 6. Click `Add Custom Token`.
 7. Click `Import Tokens`.
@@ -61,7 +61,7 @@ Eventually, the transaction should be confirmed.
 
 ### Getting the token ABI
 
-First, run `hh compile`. Then run `jq .abi artifacts/contracts/DogeToken.sol/DogeToken.json`.
+First, run `hh compile`. Then run `jq .abi artifacts/contracts/WDoge.sol/WDoge.json`.
 
 ## Deployment
 
@@ -159,7 +159,7 @@ If Etherscan recognizes the contract bytecode as a similar match to another veri
 
 #### Logic contracts
 
-First of all, the address for the logic contract is needed. We are going to use the DogeToken logic contract as an example here.
+First of all, the address for the logic contract is needed. We are going to use the WDoge logic contract as an example here.
 
 You can get the logic contract address for the token like this:
 
@@ -170,7 +170,7 @@ jq .contracts.dogeToken.logicContractAddress deployment/your-network/deployment.
 Where `your-network` is the name of the network you used while running the deploy task, i.e. the `--network` argument.
 
 
-Once you have the address of the `DogeToken` contract, you can run the Hardhat `verify` task to verify it.
+Once you have the address of the `WDoge` contract, you can run the Hardhat `verify` task to verify it.
 
 1. Set the `etherscan` property of your [hardhat config] like this:
 ```js
@@ -185,13 +185,13 @@ Once you have the address of the `DogeToken` contract, you can run the Hardhat `
 hh --network your-network verify your-dogetoken-logic-contract-address
 ```
 
-Note that there are no constructor arguments for the `DogeToken` logic contract. In general, upgradeable contracts don't use constructor arguments although this may change in the future.
+Note that there are no constructor arguments for the `WDoge` logic contract. In general, upgradeable contracts don't use constructor arguments although this may change in the future.
 
 Once that's done, it's verified. Of course, if you have more than one logic contract, you'll need to repeat the process until all of them are verified. If your contract actually has constructor arguments you'll need to provide them. Refer to the `hardhat-etherscan` help by running `hh verify --help` or checking its [README](https://github.com/NomicFoundation/hardhat/tree/master/packages/hardhat-etherscan#readme).
 
 #### Proxy contracts
 
-We are going to use the DogeToken proxy as an example here.
+We are going to use the WDoge proxy as an example here.
 
 You can get the proxy contract address for the token like this:
 
@@ -207,7 +207,7 @@ constructor(address _logic, address admin_, bytes memory _data) {}
 
 Note that you need these values as they were sent in the deployment transaction, it does not matter if the contract later modified the state variables associated with these parameters. For this reason, the deploy task stores the arguments into the deployment artifact.
 
-1. The logic contract address for the `DogeToken` is the same one as explained [here](#logic-contracts).
+1. The logic contract address for the `WDoge` is the same one as explained [here](#logic-contracts).
 2. The admin argument is the initial administrator account.
 3. The `_data` parameter is the ABI encoded call to the initializer function in the logic contract.
 
@@ -329,10 +329,10 @@ This assumes that the proxy administrator is a [gnosis safe](https://gnosis-safe
 1. Open the [gnosis safe application](https://gnosis-safe.io/app/).
 2. Click "New Transaction"
 3. Click "Contract interaction"
-4. Paste the DogeToken proxy address. See [here](#reading-the-proxy-state) to get the address.
-5. Paste the `DogethereumProxy` ABI. To get the ABI:
+4. Paste the WDoge proxy address. See [here](#reading-the-proxy-state) to get the address.
+5. Paste the `WDogeProxy` ABI. To get the ABI:
   1. Run `hh compile` to ensure contracts are compiled.
-  2. Run `jq .abi artifacts/contracts/DogethereumProxy.sol/DogethereumProxy.json` to get the ABI.
+  2. Run `jq .abi artifacts/contracts/WDogeProxy.sol/WDogeProxy.json` to get the ABI.
 6. Select either `upgradeTo` or `upgradeToAndCall` as the method.
   - If there's no migration or initialization contract call then you want the `upgradeTo` method.
 7. Paste the new logic contract address in the `newImplementation` textbox.
@@ -354,7 +354,7 @@ See [the verification section for proxies](#proxy-contracts) for more details.
 
 ### Reading the proxy state
 
-You can read the DogeToken proxy state by invoking the following Hardhat task:
+You can read the WDoge proxy state by invoking the following Hardhat task:
 
 ```sh
 hh --network your-network dogethereum.inspectProxy
