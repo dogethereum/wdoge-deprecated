@@ -25,7 +25,9 @@ Ensure the correct network is passed to the --network parameter.`
   Token address is ${chalk.green(dogeToken.contract.address)}
   Token administrator is ${chalk.green(dogeToken.tokenAdmin)}
   Proxy administrator is ${chalk.green(dogeToken.proxyAdmin)}
-  The proxy currently forwards calls to implementation contract at address ${chalk.green(dogeToken.logicContractAddress)}`);
+  The proxy currently forwards calls to implementation contract at address ${chalk.green(
+    dogeToken.logicContractAddress
+  )}`);
 };
 
 export const inspectProxyTaskName = generateTaskName("inspectProxy");

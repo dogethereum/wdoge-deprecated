@@ -22,7 +22,9 @@ async function mockTransfers() {
   for (let i = 0; i < 10; i++) {
     const suppliedAmount = tenthOfDoge.mul(10n ** BigInt(i));
     await dogeToken.transfer(userA.address, suppliedAmount, { gasLimit: 80_000 });
-    await dogeToken.connect(userA).transfer(tokenAdmin.address, suppliedAmount.div(10), { gasLimit: 80_000 });
+    await dogeToken
+      .connect(userA)
+      .transfer(tokenAdmin.address, suppliedAmount.div(10), { gasLimit: 80_000 });
   }
   const fiftyDoges = 5e9;
   tx = await dogeToken.burn(fiftyDoges, { gasLimit: 80_000 });

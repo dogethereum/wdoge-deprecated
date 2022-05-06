@@ -1,7 +1,6 @@
 import type { ContractTransaction, ContractReceipt, Event } from "ethers";
 import hre from "hardhat";
 
-
 /**
  * These isolation hooks can be used in conjunction.
  */
@@ -25,10 +24,7 @@ export function isolateEachTest(): void {
   isolate(beforeEach, afterEach);
 }
 
-function isolate(
-  preHook: Mocha.HookFunction,
-  postHook: Mocha.HookFunction
-): void {
+function isolate(preHook: Mocha.HookFunction, postHook: Mocha.HookFunction): void {
   // We want to use the snapshot value without specifying its type.
   let snapshot: unknown;
 
@@ -75,10 +71,7 @@ Original error: ${error.stack || error}`);
   throw new Error(`Did not fail. Result: ${result}`);
 }
 
-export function filterEvents(
-  events: ContractReceipt["events"],
-  name: string
-): Event[] {
+export function filterEvents(events: ContractReceipt["events"], name: string): Event[] {
   if (events === undefined) {
     throw new Error("No events found on receipt!");
   }

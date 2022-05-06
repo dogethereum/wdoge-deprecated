@@ -36,7 +36,7 @@ const deployCommand: ActionType<DeployTokenTaskArguments> = async function (
     proxyGasLimit,
     maxFeePerGas,
     maxPriorityFeePerGas,
-    nonce
+    nonce,
   },
   hre
 ) {

@@ -7,7 +7,9 @@ async function listFunctions() {
     const dogeToken = await hre.ethers.getContractFactory(contract);
     for (const [fName, fragment] of Object.entries(dogeToken.interface.functions)) {
       const fCharacteristic = `${fName} ${fragment.stateMutability}`;
-      const outputs = fragment.outputs?.map(({type, name}) => `${type} ${name ?? "_"}`).join(", ");
+      const outputs = fragment.outputs
+        ?.map(({ type, name }) => `${type} ${name ?? "_"}`)
+        .join(", ");
       let fDescriptor = `  ${fCharacteristic}`;
       if (outputs !== undefined) {
         fDescriptor += ` returns (${outputs})`;
