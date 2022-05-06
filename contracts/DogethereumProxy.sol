@@ -9,6 +9,6 @@ import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.so
  * the hardhat-etherscan plugin to verify the proxy source code.
  * It is meant to be identical to OpenZeppelin's TransparentUpgradeableProxy.
  */
-contract DogethereumProxy is TransparentUpgradeableProxy {
+contract WDogeProxy is TransparentUpgradeableProxy {
 	constructor(address logic, address admin, bytes memory data) TransparentUpgradeableProxy(logic, admin, data) {}
 }

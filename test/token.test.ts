@@ -18,8 +18,8 @@ describe("DogeToken", function () {
     anotherAccount: SignerWithAddress;
   let dogeToken: ethers.Contract;
 
-  const name = "DogeToken";
-  const symbol = "DOGE";
+  const name = "WrappedDogeToken";
+  const symbol = "WDOGE";
   const decimals = "8";
 
   const initialSupply = 100_000_000;

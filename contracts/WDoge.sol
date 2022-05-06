@@ -7,14 +7,13 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract DogeToken is Initializable, ERC20Upgradeable, OwnableUpgradeable {
+contract WDoge is Initializable, ERC20Upgradeable, OwnableUpgradeable {
   /// @custom:oz-upgrades-unsafe-allow constructor
   constructor() initializer {}
 
   function initialize(address tokenAdmin) external initializer {
     // Contract initialization
-    // TODO: decide token name and symbol
-    __ERC20_init("DogeToken", "DOGE");
+    __ERC20_init("WrappedDogeToken", "WDOGE");
     __Ownable_init();
 
     // Must happen after initialization.

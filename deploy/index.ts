@@ -289,7 +289,7 @@ const deployProxy: DeployF = async (
     proxyAdmin = await logicFactory.signer.getAddress();
   }
 
-  const proxyFactory = await hre.ethers.getContractFactory("DogethereumProxy", logicFactory.signer);
+  const proxyFactory = await hre.ethers.getContractFactory("WDogeProxy", logicFactory.signer);
   const contract = await hre.upgrades.deployProxy(logicFactory, initArguments, {
     kind: "transparent",
     ...(maxFeePerGas !== undefined && { maxFeePerGas }),
