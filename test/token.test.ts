@@ -18,7 +18,7 @@ describe("DogeToken", function () {
     anotherAccount: SignerWithAddress;
   let dogeToken: ethers.Contract;
 
-  const name = "WrappedDogeToken";
+  const name = "Wrapped Doge";
   const symbol = "WDOGE";
   const decimals = "8";
 
@@ -604,7 +604,7 @@ describe("DogeToken initialize function", function () {
   isolateTests();
 
   it("initialize doesn't work in logic contract", async function () {
-    const tokenFactory = await hre.ethers.getContractFactory("DogeToken");
+    const tokenFactory = await hre.ethers.getContractFactory("WDoge");
     const token = await tokenFactory.deploy();
     const validAddress = await tokenFactory.signer.getAddress();
     await expectFailure(

@@ -353,7 +353,7 @@ export async function deployToken(
   deploySigner: ethers.Signer,
   { tokenAdmin, useProxy = true, ...txOverrides }: TokenV1Options & UserDeploymentOptions
 ): Promise<DogethereumTokenSystem> {
-  const contractName = "DogeToken";
+  const contractName = "WDoge";
   const dogeToken = await deployContract(
     contractName,
     [tokenAdmin],
@@ -404,7 +404,6 @@ let dogethereumFixture: DogethereumTokenFixture;
 /**
  * This deploys the Dogethereum system the first time it's called.
  * Meant to be used in a test suite.
- * In particular, it will deploy the DogeTokenForTests and ScryptCheckerDummy contracts.
  * @param hre The Hardhat runtime environment where the deploy takes place.
  */
 export async function deployFixture(
