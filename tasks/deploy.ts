@@ -64,6 +64,10 @@ const deployCommand: ActionType<DeployTokenTaskArguments> = async function (
   }
 
   const [deployer] = await hre.ethers.getSigners();
+  if (tokenAdmin.toLowerCase() === (proxyAdmin || deployer.address).toLowerCase()) {
+    throw new Error(`The proxy administrator and the token administrator need to be different addresses.
+Provide an explicit proxy administrator address with the '--proxy-admin' option.`);
+  }
   const deployment = await deployToken(hre, deployer, {
     tokenAdmin,
     useProxy: true,
