@@ -311,8 +311,17 @@ const deployProxy: DeployF = async (
   };
 };
 
-const deployPlain: DeployF = async (hre, factory, { initArguments, confirmations }) => {
-  const contract = await factory.deploy(...initArguments);
+const deployPlain: DeployF = async (
+  hre,
+  factory,
+  { initArguments, confirmations, maxFeePerGas, maxPriorityFeePerGas, nonce, logicGasLimit }
+) => {
+  const contract = await factory.deploy(...initArguments, {
+    ...(maxFeePerGas !== undefined && { maxFeePerGas }),
+    ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas }),
+    ...(logicGasLimit !== undefined && { gasLimit: logicGasLimit }),
+    ...(nonce !== undefined && { nonce }),
+  });
   await contract.deployTransaction.wait(confirmations);
   return { contract };
 };
@@ -320,10 +329,25 @@ const deployPlain: DeployF = async (hre, factory, { initArguments, confirmations
 /**
  * @dev Note that this deploy primitive is NOT for production use.
  */
-const deployPlainWithInit: DeployF = async (hre, factory, { initArguments, confirmations }) => {
-  const contract = await factory.deploy();
+const deployPlainWithInit: DeployF = async (
+  hre,
+  factory,
+  { initArguments, confirmations, maxFeePerGas, maxPriorityFeePerGas, nonce, logicGasLimit }
+) => {
+  const contract = await factory.deploy({
+    ...(maxFeePerGas !== undefined && { maxFeePerGas }),
+    ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas }),
+    ...(logicGasLimit !== undefined && { gasLimit: logicGasLimit }),
+    ...(nonce !== undefined && { nonce }),
+  });
   await contract.deployTransaction.wait(confirmations);
-  const initTx = (await contract.initialize(...initArguments)) as ethers.ContractTransaction;
+  const initTx: ethers.ContractTransaction = await contract.initialize(...initArguments, {
+    ...(maxFeePerGas !== undefined && { maxFeePerGas }),
+    ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas }),
+    // TODO: actually use another gas limit for the initialization step?
+    ...(logicGasLimit !== undefined && { gasLimit: logicGasLimit }),
+    ...(nonce !== undefined && { nonce: nonce + 1 }),
+  });
   await initTx.wait(confirmations);
   return { contract };
 };
