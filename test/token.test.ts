@@ -548,6 +548,14 @@ describe("DogeToken", function () {
         expect((await dogeToken.totalSupply()).toString()).to.be.bignumber.equal(expectedSupply);
       });
 
+      it("fails when exceeding 10M totalSupply", async function () {
+        const expectedSupply = (initialSupply + amount).toString();
+        const tenMillion = (new BN(10)).pow(new BN(15)).toString();
+        await expectFailure(() => dogeToken.mint(tenMillion), (error) => {
+          assert.include(error.message, "MintLimitExceeded()");
+        });
+      });
+
       it("increments recipient balance", async function () {
         const tokenAdmin = dogeToken.owner();
         const expectedBalance = (initialSupply + amount).toString();

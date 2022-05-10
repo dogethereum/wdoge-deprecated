@@ -11,6 +11,11 @@ contract WDoge is Initializable, ERC20Upgradeable, OwnableUpgradeable {
   /// @custom:oz-upgrades-unsafe-allow constructor
   constructor() initializer {}
 
+  /**
+   * The total supply cannot exceed 10 million tokens.
+   */
+  error MintLimitExceeded();
+
   function initialize(address tokenAdmin) external initializer {
     // Contract initialization
     __ERC20_init("Wrapped Doge", "WDOGE");
@@ -21,6 +26,10 @@ contract WDoge is Initializable, ERC20Upgradeable, OwnableUpgradeable {
   }
 
   function mint(uint256 amount) public onlyOwner {
+    // We limit the total supply to 10 million tokens
+    // 10M tokens = 10e7 tokens = 10e7 * (10 ** decimals) indivisible token units
+    uint256 maxTotalSupply = 10 ** (7 + decimals());
+    if (amount + totalSupply() > maxTotalSupply) revert MintLimitExceeded();
     _mint(owner(), amount);
   }
 
