@@ -12,7 +12,7 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 // Note that bn.js can't parse MAX_UINT256 as a hex string.
 const MAX_UINT256 = new BN(1).shln(256).subn(1);
 
-describe("DogeToken", function () {
+describe("WDoge", function () {
   let initialHolder: SignerWithAddress,
     recipient: SignerWithAddress,
     anotherAccount: SignerWithAddress;
@@ -615,7 +615,7 @@ describe("DogeToken", function () {
   });
 });
 
-describe("DogeToken initialize function", function () {
+describe("WDoge initialize function", function () {
   isolateTests();
 
   it("initialize doesn't work in logic contract", async function () {
