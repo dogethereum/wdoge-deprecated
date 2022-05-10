@@ -11,5 +11,4 @@ contract DummyToken is WDoge {
   function migrate(uint256 version) public {
     emit Migration(version);
   }
-
 }
