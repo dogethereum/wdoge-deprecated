@@ -606,6 +606,13 @@ describe("DogeToken", function () {
     describeBurn("for entire balance", initialSupply);
     describeBurn("for less amount than balance", initialSupply - 1);
   });
+
+  describe("getVersion", function() {
+    it("returns 1", async function() {
+      const version = await dogeToken.getVersion();
+      assert.equal(version, 1);
+    });
+  });
 });
 
 describe("DogeToken initialize function", function () {
