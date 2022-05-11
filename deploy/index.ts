@@ -197,9 +197,9 @@ async function getContractDescription(
   const bytecodeAndSymbols = build.output.contracts[sourceName][contractName].evm;
 
   return {
-    abi: abi,
-    contractName: contractName,
-    sourceName: sourceName,
+    abi,
+    contractName,
+    sourceName,
     address: contract.address,
     ...(proxyAdmin !== undefined && {
       logicContractAddress,
@@ -221,7 +221,6 @@ export async function storeDeployment(
       dogeToken: await getContractDescription(hre, dogeToken),
     },
   };
-  // TODO: store debugging symbols such as storage layout, contract types, source mappings, etc too.
 
   await fs.ensureDir(deploymentDir);
 
