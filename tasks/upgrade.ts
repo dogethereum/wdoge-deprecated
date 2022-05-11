@@ -22,6 +22,7 @@ export interface UpgradeTokenTaskArguments {
   maxFeePerGas?: string;
   maxPriorityFeePerGas?: string;
   tokenGasLimit?: number;
+  nonce?: number;
 }
 
 /**
@@ -35,6 +36,7 @@ const upgradeCommand: ActionType<UpgradeTokenTaskArguments> = async function (
     tokenGasLimit,
     maxFeePerGas,
     maxPriorityFeePerGas,
+    nonce,
   },
   hre
 ) {
@@ -73,6 +75,7 @@ Ensure the correct network is passed to the --network parameter.`
         maxPriorityFeePerGas: hre.ethers.utils.parseUnits(maxPriorityFeePerGas, "gwei"),
       }),
       ...(tokenGasLimit !== undefined && { logicGasLimit: tokenGasLimit }),
+      ...(nonce !== undefined && { nonce }),
     },
     callArgs
   );
@@ -147,5 +150,12 @@ task(upgradeTaskName, "Upgrades doge token.")
       " function and a list of arguments for that function.",
     undefined,
     types.inputFile
+  )
+  .addOptionalParam(
+    "nonce",
+    "The first nonce to be used when creating a transaction." +
+      " Other transactions will use consecutive numbers to this nonce.",
+    undefined,
+    types.int
   )
   .setAction(upgradeCommand);

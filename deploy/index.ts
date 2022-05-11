@@ -403,7 +403,7 @@ export async function prepareUpgradeToken(
   hre: HardhatRuntimeEnvironment,
   implementationFactory: ethers.ContractFactory,
   dogeTokenProxy: string,
-  { maxFeePerGas, maxPriorityFeePerGas, logicGasLimit }: UserDeploymentOptions,
+  { maxFeePerGas, maxPriorityFeePerGas, logicGasLimit, nonce }: UserDeploymentOptions,
   callDescriptor?: ContractCall
 ): Promise<UpgradePreparation> {
   const upgrade: Partial<UpgradePreparation> = {};
@@ -422,6 +422,7 @@ export async function prepareUpgradeToken(
     ...(maxFeePerGas !== undefined && { maxFeePerGas }),
     ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas }),
     ...(logicGasLimit !== undefined && { implementationGasLimit: logicGasLimit }),
+    ...(nonce !== undefined && { nonce }),
   });
 
   return { ...upgrade, implementation };
