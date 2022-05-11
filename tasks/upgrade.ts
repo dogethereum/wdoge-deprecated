@@ -60,12 +60,12 @@ const upgradeCommand: ActionType<UpgradeTokenTaskArguments> = async function (
 Ensure the correct network is passed to the --network parameter.`
     );
   }
-  const { dogeToken } = await loadDeployment(hre, deploymentDir);
+  const { wDoge } = await loadDeployment(hre, deploymentDir);
 
   const upgrade = await prepareUpgradeToken(
     hre,
     logicFactory,
-    dogeToken.contract.address,
+    wDoge.contract.address,
     {
       confirmations,
       ...(maxFeePerGas !== undefined && {

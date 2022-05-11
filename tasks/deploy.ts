@@ -85,11 +85,11 @@ Provide an explicit proxy administrator address with the '--proxy-admin' option.
   });
 
   console.log(`Deployed token!
-  Token address is ${chalk.green(deployment.dogeToken.contract.address)}
+  Token address is ${chalk.green(deployment.wDoge.contract.address)}
   Token administrator is ${chalk.green(tokenAdmin)}
   Proxy administrator is ${chalk.green(proxyAdmin || deployer.address)}
   The proxy currently forwards calls to implementation contract at address ${chalk.green(
-    deployment.dogeToken.logicContractAddress
+    deployment.wDoge.logicContractAddress
   )}`);
 
   return storeDeployment(hre, deployment, deploymentDir);

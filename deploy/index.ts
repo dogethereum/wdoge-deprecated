@@ -51,10 +51,10 @@ export interface TokenV1Fixture {
 }
 
 export interface DogethereumTokenSystem {
-  dogeToken: DogethereumToken;
+  wDoge: DogethereumToken;
 }
 export interface DogethereumTokenFixture {
-  dogeToken: DogethereumTestToken;
+  wDoge: DogethereumTestToken;
 }
 
 export type ContractOptions = ContractOptionsSimple & TxOverrides;
@@ -133,7 +133,7 @@ type DeployF = (
 interface DeploymentInfo {
   chainId: number;
   contracts: {
-    dogeToken: ContractInfo;
+    wDoge: ContractInfo;
   };
 }
 
@@ -214,13 +214,13 @@ async function getContractDescription(
 
 export async function storeDeployment(
   hre: HardhatRuntimeEnvironment,
-  { dogeToken }: DogethereumTokenSystem,
+  { wDoge }: DogethereumTokenSystem,
   deploymentDir: string
 ): Promise<void> {
   const deploymentInfo: DeploymentInfo = {
     chainId: hre.ethers.provider.network.chainId,
     contracts: {
-      dogeToken: await getContractDescription(hre, dogeToken),
+      wDoge: await getContractDescription(hre, wDoge),
     },
   };
 
@@ -256,17 +256,17 @@ but found chainId ${deploymentInfo.chainId} instead.`
     );
   }
 
-  const dogeToken = await reifyContract(hre, deploymentInfo.contracts.dogeToken);
+  const wDoge = await reifyContract(hre, deploymentInfo.contracts.wDoge);
 
   return {
-    dogeToken: {
-      ...dogeToken,
-      tokenAdmin: await dogeToken.contract
+    wDoge: {
+      ...wDoge,
+      tokenAdmin: await wDoge.contract
         .connect(hre.ethers.provider)
         .owner({ from: ZERO_ADDRESS }),
-      proxyAdmin: await hre.upgrades.erc1967.getAdminAddress(dogeToken.contract.address),
+      proxyAdmin: await hre.upgrades.erc1967.getAdminAddress(wDoge.contract.address),
       logicContractAddress: await hre.upgrades.erc1967.getImplementationAddress(
-        dogeToken.contract.address
+        wDoge.contract.address
       ),
     },
   };
@@ -382,7 +382,7 @@ export async function deployToken(
   { tokenAdmin, useProxy = true, ...txOverrides }: TokenV1Options & UserDeploymentOptions
 ): Promise<DogethereumTokenSystem> {
   const contractName = "WDoge";
-  const dogeToken = await deployContract(
+  const wDoge = await deployContract(
     contractName,
     [tokenAdmin],
     hre,
@@ -391,8 +391,8 @@ export async function deployToken(
     useProxy ? deployProxy : deployPlainWithInit
   );
   return {
-    dogeToken: {
-      ...dogeToken,
+    wDoge: {
+      ...wDoge,
       name: contractName,
       tokenAdmin,
     },
@@ -402,7 +402,7 @@ export async function deployToken(
 export async function prepareUpgradeToken(
   hre: HardhatRuntimeEnvironment,
   implementationFactory: ethers.ContractFactory,
-  dogeTokenProxy: string,
+  wDogeProxy: string,
   { maxFeePerGas, maxPriorityFeePerGas, logicGasLimit, nonce }: UserDeploymentOptions,
   callDescriptor?: ContractCall
 ): Promise<UpgradePreparation> {
@@ -418,7 +418,7 @@ export async function prepareUpgradeToken(
     );
   }
 
-  const implementation = await hre.upgrades.prepareUpgrade(dogeTokenProxy, implementationFactory, {
+  const implementation = await hre.upgrades.prepareUpgrade(wDogeProxy, implementationFactory, {
     ...(maxFeePerGas !== undefined && { maxFeePerGas }),
     ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas }),
     ...(logicGasLimit !== undefined && { implementationGasLimit: logicGasLimit }),
@@ -442,10 +442,10 @@ export async function deployFixture(
   const signers = await hre.ethers.getSigners();
   const proxyAdmin = signers[signers.length - 1];
   const tokenAdmin = signers[0];
-  const { dogeToken } = await deployToken(hre, proxyAdmin, { tokenAdmin: tokenAdmin.address });
+  const { wDoge } = await deployToken(hre, proxyAdmin, { tokenAdmin: tokenAdmin.address });
   dogethereumFixture = {
-    dogeToken: {
-      ...dogeToken,
+    wDoge: {
+      ...wDoge,
       tokenAdmin,
     },
   };

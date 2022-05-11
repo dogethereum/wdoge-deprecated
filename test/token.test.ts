@@ -16,7 +16,7 @@ describe("WDoge", function () {
   let initialHolder: SignerWithAddress,
     recipient: SignerWithAddress,
     anotherAccount: SignerWithAddress;
-  let dogeToken: ethers.Contract;
+  let wDoge: ethers.Contract;
 
   const name = "Wrapped Doge";
   const symbol = "WDOGE";
@@ -29,29 +29,29 @@ describe("WDoge", function () {
 
   before(async function () {
     const deploy = await deployFixture(hre);
-    initialHolder = deploy.dogeToken.tokenAdmin;
-    dogeToken = deploy.dogeToken.contract.connect(initialHolder);
-    await dogeToken.mint(initialSupply);
+    initialHolder = deploy.wDoge.tokenAdmin;
+    wDoge = deploy.wDoge.contract.connect(initialHolder);
+    await wDoge.mint(initialSupply);
     const accounts = await hre.ethers.getSigners();
     recipient = accounts[3];
     anotherAccount = accounts[4];
   });
 
   it(`has ${name} name`, async function () {
-    expect(await dogeToken.name()).to.equal(name);
+    expect(await wDoge.name()).to.equal(name);
   });
 
   it(`has ${symbol} symbol`, async function () {
-    expect(await dogeToken.symbol()).to.equal(symbol);
+    expect(await wDoge.symbol()).to.equal(symbol);
   });
 
   it(`has ${decimals} decimals`, async function () {
-    expect((await dogeToken.decimals()).toString()).to.be.bignumber.equal(decimals);
+    expect((await wDoge.decimals()).toString()).to.be.bignumber.equal(decimals);
   });
 
   describe("total supply", function () {
     it("returns the total amount of tokens", async function () {
-      expect((await dogeToken.totalSupply()).toString()).to.be.bignumber.equal(
+      expect((await wDoge.totalSupply()).toString()).to.be.bignumber.equal(
         initialSupply.toString()
       );
     });
@@ -61,14 +61,14 @@ describe("WDoge", function () {
     describe("when the requested account has no tokens", function () {
       it("returns zero", async function () {
         expect(
-          (await dogeToken.balanceOf(anotherAccount.address)).toString()
+          (await wDoge.balanceOf(anotherAccount.address)).toString()
         ).to.be.bignumber.equal("0");
       });
     });
 
     describe("when the requested account has some tokens", function () {
       it("returns the total amount of tokens", async function () {
-        expect((await dogeToken.balanceOf(initialHolder.address)).toString()).to.be.bignumber.equal(
+        expect((await wDoge.balanceOf(initialHolder.address)).toString()).to.be.bignumber.equal(
           initialSupply.toString()
         );
       });
@@ -80,7 +80,7 @@ describe("WDoge", function () {
       describe("when the sender does not have enough balance", function () {
         it("reverts", async function () {
           await expectFailure(
-            () => dogeToken.transfer(recipient.address, initialSupply + 1),
+            () => wDoge.transfer(recipient.address, initialSupply + 1),
             (error) => assert.include(error.message, `transfer amount exceeds balance`)
           );
         });
@@ -90,19 +90,19 @@ describe("WDoge", function () {
         const amount = initialSupply.toString();
 
         it("transfers the requested amount", async function () {
-          await dogeToken.transfer(recipient.address, amount);
+          await wDoge.transfer(recipient.address, amount);
 
           expect(
-            (await dogeToken.balanceOf(initialHolder.address)).toString()
+            (await wDoge.balanceOf(initialHolder.address)).toString()
           ).to.be.bignumber.equal("0");
 
-          expect((await dogeToken.balanceOf(recipient.address)).toString()).to.be.bignumber.equal(
+          expect((await wDoge.balanceOf(recipient.address)).toString()).to.be.bignumber.equal(
             amount
           );
         });
 
         it("emits a transfer event", async function () {
-          const tx: ethers.ContractTransaction = await dogeToken
+          const tx: ethers.ContractTransaction = await wDoge
             .connect(initialHolder)
             .transfer(recipient.address, amount);
           await expectTransfer(tx, initialHolder, recipient, amount);
@@ -113,19 +113,19 @@ describe("WDoge", function () {
         const amount = 0;
 
         it("transfers the requested amount", async function () {
-          await dogeToken.transfer(recipient.address, amount);
+          await wDoge.transfer(recipient.address, amount);
 
           expect(
-            (await dogeToken.balanceOf(initialHolder.address)).toString()
+            (await wDoge.balanceOf(initialHolder.address)).toString()
           ).to.be.bignumber.equal(initialSupply.toString());
 
-          expect((await dogeToken.balanceOf(recipient.address)).toString()).to.be.bignumber.equal(
+          expect((await wDoge.balanceOf(recipient.address)).toString()).to.be.bignumber.equal(
             "0"
           );
         });
 
         it("emits a transfer event", async function () {
-          const tx: ethers.ContractTransaction = await dogeToken
+          const tx: ethers.ContractTransaction = await wDoge
             .connect(initialHolder)
             .transfer(recipient.address, amount);
           await expectTransfer(tx, initialHolder, recipient, amount.toString());
@@ -136,7 +136,7 @@ describe("WDoge", function () {
     describe("when the recipient is the zero address", function () {
       it("reverts", async function () {
         await expectFailure(
-          () => dogeToken.transfer(ZERO_ADDRESS, initialSupply),
+          () => wDoge.transfer(ZERO_ADDRESS, initialSupply),
           (error) => assert.include(error.message, `transfer to the zero address`)
         );
       });
@@ -163,45 +163,45 @@ describe("WDoge", function () {
 
         describe("when the spender has enough allowance", function () {
           beforeEach(async function () {
-            await dogeToken.approve(spender.address, initialSupply);
+            await wDoge.approve(spender.address, initialSupply);
           });
 
           describe("when the token owner has enough balance", function () {
             const amount = initialSupply.toString();
 
             it("transfers the requested amount", async function () {
-              await dogeToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount);
+              await wDoge.connect(spender).transferFrom(tokenOwner.address, to.address, amount);
 
               expect(
-                (await dogeToken.balanceOf(tokenOwner.address)).toString()
+                (await wDoge.balanceOf(tokenOwner.address)).toString()
               ).to.be.bignumber.equal("0");
 
-              expect((await dogeToken.balanceOf(to.address)).toString()).to.be.bignumber.equal(
+              expect((await wDoge.balanceOf(to.address)).toString()).to.be.bignumber.equal(
                 amount
               );
             });
 
             it("decreases the spender allowance", async function () {
-              await dogeToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount);
+              await wDoge.connect(spender).transferFrom(tokenOwner.address, to.address, amount);
 
               expect(
-                (await dogeToken.allowance(tokenOwner.address, spender.address)).toString()
+                (await wDoge.allowance(tokenOwner.address, spender.address)).toString()
               ).to.be.bignumber.equal("0");
             });
 
             it("emits a transfer event", async function () {
-              const tx = await dogeToken
+              const tx = await wDoge
                 .connect(spender)
                 .transferFrom(tokenOwner.address, to.address, amount);
               await expectTransfer(tx, tokenOwner, to, amount);
             });
 
             it("emits an approval event", async function () {
-              const tx = await dogeToken
+              const tx = await wDoge
                 .connect(spender)
                 .transferFrom(tokenOwner.address, to.address, amount);
               const allowance = (
-                await dogeToken.allowance(tokenOwner.address, spender.address)
+                await wDoge.allowance(tokenOwner.address, spender.address)
               ).toString();
               await expectApproval(tx, tokenOwner, spender, allowance);
             });
@@ -211,13 +211,13 @@ describe("WDoge", function () {
             const amount = initialSupply;
 
             beforeEach("reducing balance", async function () {
-              await dogeToken.transfer(to.address, 1);
+              await wDoge.transfer(to.address, 1);
             });
 
             it("reverts", async function () {
               await expectFailure(
                 () =>
-                  dogeToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount),
+                  wDoge.connect(spender).transferFrom(tokenOwner.address, to.address, amount),
                 (error) => assert.include(error.message, `transfer amount exceeds balance`)
               );
             });
@@ -228,7 +228,7 @@ describe("WDoge", function () {
           const allowance = initialSupply - 1;
 
           beforeEach(async function () {
-            await dogeToken.approve(spender.address, allowance);
+            await wDoge.approve(spender.address, allowance);
           });
 
           describe("when the token owner has enough balance", function () {
@@ -237,7 +237,7 @@ describe("WDoge", function () {
             it("reverts", async function () {
               await expectFailure(
                 () =>
-                  dogeToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount),
+                  wDoge.connect(spender).transferFrom(tokenOwner.address, to.address, amount),
                 (error) => assert.include(error.message, `insufficient allowance`)
               );
             });
@@ -247,13 +247,13 @@ describe("WDoge", function () {
             const amount = allowance;
 
             beforeEach("reducing balance", async function () {
-              await dogeToken.transfer(to.address, 2);
+              await wDoge.transfer(to.address, 2);
             });
 
             it("reverts", async function () {
               await expectFailure(
                 () =>
-                  dogeToken.connect(spender).transferFrom(tokenOwner.address, to.address, amount),
+                  wDoge.connect(spender).transferFrom(tokenOwner.address, to.address, amount),
                 (error) => assert.include(error.message, `transfer amount exceeds balance`)
               );
             });
@@ -262,20 +262,20 @@ describe("WDoge", function () {
 
         describe("when the spender has unlimited allowance", function () {
           beforeEach(async function () {
-            await dogeToken.approve(spender.address, MAX_UINT256.toString());
+            await wDoge.approve(spender.address, MAX_UINT256.toString());
           });
 
           it("does not decrease the spender allowance", async function () {
-            await dogeToken.connect(spender).transferFrom(tokenOwner.address, to.address, 1);
+            await wDoge.connect(spender).transferFrom(tokenOwner.address, to.address, 1);
 
             const allowance = (
-              await dogeToken.allowance(tokenOwner.address, spender.address)
+              await wDoge.allowance(tokenOwner.address, spender.address)
             ).toString();
             expect(allowance).to.be.bignumber.equal(MAX_UINT256);
           });
 
           it("does not emit an approval event", async function () {
-            const tx: ethers.ContractTransaction = await dogeToken
+            const tx: ethers.ContractTransaction = await wDoge
               .connect(spender)
               .transferFrom(tokenOwner.address, to.address, 1);
             await expectNoApproval(tx);
@@ -288,12 +288,12 @@ describe("WDoge", function () {
         const to = ZERO_ADDRESS;
 
         beforeEach(async function () {
-          await dogeToken.approve(spender.address, amount);
+          await wDoge.approve(spender.address, amount);
         });
 
         it("reverts", async function () {
           await expectFailure(
-            () => dogeToken.connect(spender).transferFrom(tokenOwner.address, to, amount),
+            () => wDoge.connect(spender).transferFrom(tokenOwner.address, to, amount),
             (error) => assert.include(error.message, `transfer to the zero address`)
           );
         });
@@ -306,7 +306,7 @@ describe("WDoge", function () {
 
       it("reverts", async function () {
         await expectFailure(
-          () => dogeToken.connect(spender).transferFrom(tokenOwner, recipient.address, amount),
+          () => wDoge.connect(spender).transferFrom(tokenOwner, recipient.address, amount),
           (error) => assert.include(error.message, "from the zero address")
         );
       });
@@ -317,30 +317,30 @@ describe("WDoge", function () {
     describe("when the spender is not the zero address", function () {
       describe("when the sender has enough balance", function () {
         it("emits an approval event", async function () {
-          const tx = await dogeToken.approve(recipient.address, initialSupply);
+          const tx = await wDoge.approve(recipient.address, initialSupply);
           await expectApproval(tx, initialHolder, recipient, initialSupply.toString());
         });
 
         describe("when there was no approved amount before", function () {
           it("approves the requested amount", async function () {
-            await dogeToken.approve(recipient.address, initialSupply);
+            await wDoge.approve(recipient.address, initialSupply);
 
             expect(
-              (await dogeToken.allowance(initialHolder.address, recipient.address)).toString()
+              (await wDoge.allowance(initialHolder.address, recipient.address)).toString()
             ).to.be.bignumber.equal(initialSupply.toString());
           });
         });
 
         describe("when the spender had an approved amount", function () {
           beforeEach(async function () {
-            await dogeToken.approve(recipient.address, 1);
+            await wDoge.approve(recipient.address, 1);
           });
 
           it("approves the requested amount and replaces the previous one", async function () {
-            await dogeToken.approve(recipient.address, initialSupply);
+            await wDoge.approve(recipient.address, initialSupply);
 
             expect(
-              (await dogeToken.allowance(initialHolder.address, recipient.address)).toString()
+              (await wDoge.allowance(initialHolder.address, recipient.address)).toString()
             ).to.be.bignumber.equal(initialSupply.toString());
           });
         });
@@ -350,30 +350,30 @@ describe("WDoge", function () {
         const amount = (initialSupply + 1).toString();
 
         it("emits an approval event", async function () {
-          const tx = await dogeToken.approve(recipient.address, amount);
+          const tx = await wDoge.approve(recipient.address, amount);
           expectApproval(tx, initialHolder, recipient, amount.toString());
         });
 
         describe("when there was no approved amount before", function () {
           it("approves the requested amount", async function () {
-            await dogeToken.approve(recipient.address, amount);
+            await wDoge.approve(recipient.address, amount);
 
             expect(
-              (await dogeToken.allowance(initialHolder.address, recipient.address)).toString()
+              (await wDoge.allowance(initialHolder.address, recipient.address)).toString()
             ).to.be.bignumber.equal(amount);
           });
         });
 
         describe("when the spender had an approved amount", function () {
           beforeEach(async function () {
-            await dogeToken.approve(recipient.address, 1);
+            await wDoge.approve(recipient.address, 1);
           });
 
           it("approves the requested amount and replaces the previous one", async function () {
-            await dogeToken.approve(recipient.address, amount);
+            await wDoge.approve(recipient.address, amount);
 
             expect(
-              (await dogeToken.allowance(initialHolder.address, recipient.address)).toString()
+              (await wDoge.allowance(initialHolder.address, recipient.address)).toString()
             ).to.be.bignumber.equal(amount);
           });
         });
@@ -383,7 +383,7 @@ describe("WDoge", function () {
     describe("when the spender is the zero address", function () {
       it("reverts", async function () {
         await expectFailure(
-          () => dogeToken.approve(ZERO_ADDRESS, initialSupply),
+          () => wDoge.approve(ZERO_ADDRESS, initialSupply),
           (error) => assert.include(error.message, `approve to the zero address`)
         );
       });
@@ -396,7 +396,7 @@ describe("WDoge", function () {
         describe("when there was no approved amount before", function () {
           it("reverts", async function () {
             await expectFailure(
-              () => dogeToken.decreaseAllowance(recipient.address, amount),
+              () => wDoge.decreaseAllowance(recipient.address, amount),
               (error) => assert.include(error.message, "ERC20: decreased allowance below zero")
             );
           });
@@ -406,32 +406,32 @@ describe("WDoge", function () {
           const approvedAmount = amount;
 
           beforeEach(async function () {
-            await dogeToken.approve(recipient.address, approvedAmount);
+            await wDoge.approve(recipient.address, approvedAmount);
           });
 
           it("emits an approval event", async function () {
-            const tx = await dogeToken.decreaseAllowance(recipient.address, approvedAmount);
+            const tx = await wDoge.decreaseAllowance(recipient.address, approvedAmount);
             expectApproval(tx, initialHolder, recipient, "0");
           });
 
           it("decreases the spender allowance subtracting the requested amount", async function () {
-            await dogeToken.decreaseAllowance(recipient.address, approvedAmount - 1);
+            await wDoge.decreaseAllowance(recipient.address, approvedAmount - 1);
 
             expect(
-              (await dogeToken.allowance(initialHolder.address, recipient.address)).toString()
+              (await wDoge.allowance(initialHolder.address, recipient.address)).toString()
             ).to.be.bignumber.equal("1");
           });
 
           it("sets the allowance to zero when all allowance is removed", async function () {
-            await dogeToken.decreaseAllowance(recipient.address, approvedAmount);
+            await wDoge.decreaseAllowance(recipient.address, approvedAmount);
             expect(
-              (await dogeToken.allowance(initialHolder.address, recipient.address)).toString()
+              (await wDoge.allowance(initialHolder.address, recipient.address)).toString()
             ).to.be.bignumber.equal("0");
           });
 
           it("reverts when more than the full allowance is removed", async function () {
             await expectFailure(
-              () => dogeToken.decreaseAllowance(recipient.address, approvedAmount + 1),
+              () => wDoge.decreaseAllowance(recipient.address, approvedAmount + 1),
               (error) => assert.include(error.message, "ERC20: decreased allowance below zero")
             );
           });
@@ -450,7 +450,7 @@ describe("WDoge", function () {
     describe("when the spender is the zero address", function () {
       it("reverts", async function () {
         await expectFailure(
-          () => dogeToken.decreaseAllowance(ZERO_ADDRESS, initialSupply),
+          () => wDoge.decreaseAllowance(ZERO_ADDRESS, initialSupply),
           (error) => assert.include(error.message, "ERC20: decreased allowance below zero")
         );
       });
@@ -461,30 +461,30 @@ describe("WDoge", function () {
     describe("when the spender is not the zero address", function () {
       describe("when the sender has enough balance", function () {
         it("emits an approval event", async function () {
-          const tx = await dogeToken.increaseAllowance(recipient.address, initialSupply);
+          const tx = await wDoge.increaseAllowance(recipient.address, initialSupply);
           expectApproval(tx, initialHolder, recipient, initialSupply.toString());
         });
 
         describe("when there was no approved amount before", function () {
           it("approves the requested amount", async function () {
-            await dogeToken.increaseAllowance(recipient.address, initialSupply);
+            await wDoge.increaseAllowance(recipient.address, initialSupply);
 
             expect(
-              (await dogeToken.allowance(initialHolder.address, recipient.address)).toString()
+              (await wDoge.allowance(initialHolder.address, recipient.address)).toString()
             ).to.be.bignumber.equal(initialSupply.toString());
           });
         });
 
         describe("when the spender had an approved amount", function () {
           beforeEach(async function () {
-            await dogeToken.approve(recipient.address, 1);
+            await wDoge.approve(recipient.address, 1);
           });
 
           it("increases the spender allowance adding the requested amount", async function () {
-            await dogeToken.increaseAllowance(recipient.address, initialSupply);
+            await wDoge.increaseAllowance(recipient.address, initialSupply);
 
             expect(
-              (await dogeToken.allowance(initialHolder.address, recipient.address)).toString()
+              (await wDoge.allowance(initialHolder.address, recipient.address)).toString()
             ).to.be.bignumber.equal((initialSupply + 1).toString());
           });
         });
@@ -494,30 +494,30 @@ describe("WDoge", function () {
         const amount = new BN(initialSupply + 1);
 
         it("emits an approval event", async function () {
-          const tx = await dogeToken.increaseAllowance(recipient.address, amount.toString());
+          const tx = await wDoge.increaseAllowance(recipient.address, amount.toString());
           expectApproval(tx, initialHolder, recipient, amount.toString());
         });
 
         describe("when there was no approved amount before", function () {
           it("approves the requested amount", async function () {
-            await dogeToken.increaseAllowance(recipient.address, amount.toString());
+            await wDoge.increaseAllowance(recipient.address, amount.toString());
 
             expect(
-              (await dogeToken.allowance(initialHolder.address, recipient.address)).toString()
+              (await wDoge.allowance(initialHolder.address, recipient.address)).toString()
             ).to.be.bignumber.equal(amount);
           });
         });
 
         describe("when the spender had an approved amount", function () {
           beforeEach(async function () {
-            await dogeToken.approve(recipient.address, 1);
+            await wDoge.approve(recipient.address, 1);
           });
 
           it("increases the spender allowance adding the requested amount", async function () {
-            await dogeToken.increaseAllowance(recipient.address, amount.toString());
+            await wDoge.increaseAllowance(recipient.address, amount.toString());
 
             expect(
-              (await dogeToken.allowance(initialHolder.address, recipient.address)).toString()
+              (await wDoge.allowance(initialHolder.address, recipient.address)).toString()
             ).to.be.bignumber.equal(amount.addn(1));
           });
         });
@@ -527,7 +527,7 @@ describe("WDoge", function () {
     describe("when the spender is the zero address", function () {
       it("reverts", async function () {
         await expectFailure(
-          () => dogeToken.increaseAllowance(ZERO_ADDRESS, initialSupply),
+          () => wDoge.increaseAllowance(ZERO_ADDRESS, initialSupply),
           (error) => assert.include(error.message, "ERC20: approve to the zero address")
         );
       });
@@ -540,25 +540,25 @@ describe("WDoge", function () {
     describe("for a non zero account", function () {
       let receipt: ethers.ContractTransaction;
       beforeEach("minting", async function () {
-        receipt = await dogeToken.mint(amount);
+        receipt = await wDoge.mint(amount);
       });
 
       it("increments totalSupply", async function () {
         const expectedSupply = (initialSupply + amount).toString();
-        expect((await dogeToken.totalSupply()).toString()).to.be.bignumber.equal(expectedSupply);
+        expect((await wDoge.totalSupply()).toString()).to.be.bignumber.equal(expectedSupply);
       });
 
       it("fails when exceeding 10M totalSupply", async function () {
         const tenMillion = (new BN(10)).pow(new BN(15)).toString();
-        await expectFailure(() => dogeToken.mint(tenMillion), (error) => {
+        await expectFailure(() => wDoge.mint(tenMillion), (error) => {
           assert.include(error.message, "MintLimitExceeded()");
         });
       });
 
       it("increments recipient balance", async function () {
-        const tokenAdmin = dogeToken.owner();
+        const tokenAdmin = wDoge.owner();
         const expectedBalance = (initialSupply + amount).toString();
-        expect((await dogeToken.balanceOf(tokenAdmin)).toString()).to.be.bignumber.equal(
+        expect((await wDoge.balanceOf(tokenAdmin)).toString()).to.be.bignumber.equal(
           expectedBalance
         );
       });
@@ -572,7 +572,7 @@ describe("WDoge", function () {
   describe("burn", function () {
     it("rejects burning more than balance", async function () {
       await expectFailure(
-        () => dogeToken.burn(initialSupply + 1),
+        () => wDoge.burn(initialSupply + 1),
         (error) => assert.include(error.message, "ERC20: burn amount exceeds balance")
       );
     });
@@ -581,18 +581,18 @@ describe("WDoge", function () {
       describe(description, function () {
         let receipt: ethers.ContractTransaction;
         beforeEach("burning", async function () {
-          receipt = await dogeToken.burn(amount);
+          receipt = await wDoge.burn(amount);
         });
 
         it("decrements totalSupply", async function () {
           const expectedSupply = (initialSupply - amount).toString();
-          expect((await dogeToken.totalSupply()).toString()).to.be.bignumber.equal(expectedSupply);
+          expect((await wDoge.totalSupply()).toString()).to.be.bignumber.equal(expectedSupply);
         });
 
         it("decrements initialHolder balance", async function () {
           const expectedBalance = (initialSupply - amount).toString();
           expect(
-            (await dogeToken.balanceOf(initialHolder.address)).toString()
+            (await wDoge.balanceOf(initialHolder.address)).toString()
           ).to.be.bignumber.equal(expectedBalance);
         });
 
@@ -608,7 +608,7 @@ describe("WDoge", function () {
 
   describe("getVersion", function() {
     it("returns 1", async function() {
-      const version = await dogeToken.getVersion();
+      const version = await wDoge.getVersion();
       assert.equal(version, 1);
     });
   });

@@ -1,4 +1,4 @@
-# wDoge token contract
+# Wrapped Doge token contract
 
 The Dogecoin-Ethereum bridge requires a token to represent doges in the Ethereum network. This repository contains a token contract that fulfills this goal.
 
@@ -164,7 +164,7 @@ First of all, the address for the logic contract is needed. We are going to use 
 You can get the logic contract address for the token like this:
 
 ```sh
-jq .contracts.dogeToken.logicContractAddress deployment/your-network/deployment.json
+jq .contracts.wDoge.logicContractAddress deployment/your-network/deployment.json
 ```
 
 Where `your-network` is the name of the network you used while running the deploy task, i.e. the `--network` argument.
@@ -182,7 +182,7 @@ Once you have the address of the `WDoge` contract, you can run the Hardhat `veri
 ```
 2. Run the Hardhat verify task:
 ```sh
-hh --network your-network verify your-dogetoken-logic-contract-address
+hh --network your-network verify your-WDoge-logic-contract-address
 ```
 
 Note that there are no constructor arguments for the `WDoge` logic contract. In general, upgradeable contracts don't use constructor arguments although this may change in the future.
@@ -196,7 +196,7 @@ We are going to use the WDoge proxy as an example here.
 You can get the proxy contract address for the token like this:
 
 ```sh
-jq .contracts.dogeToken.address deployment/your-network/deployment.json
+jq .contracts.wDoge.address deployment/your-network/deployment.json
 ```
 
 You also need the constructor arguments for the proxy.
@@ -211,7 +211,7 @@ Note that you need these values as they were sent in the deployment transaction,
 2. The admin argument is the initial administrator account.
 3. The `_data` parameter is the ABI encoded call to the initializer function in the logic contract.
 
-Run `jq .contracts.dogeToken.proxyConstructorArgs deployment/your-network/deployment.json` to get them.
+Run `jq .contracts.wDoge.proxyConstructorArgs deployment/your-network/deployment.json` to get them.
 
 With all these you can now verify the proxy contract:
 
@@ -225,7 +225,7 @@ With all these you can now verify the proxy contract:
 ```
 2. Run the Hardhat verify task:
 ```sh
-hh --network your-network verify your-dogetoken-proxy-contract-address your-dogetoken-logic-contract-address proxy-admin-address encoded-initializer-arguments
+hh --network your-network verify your-WDoge-proxy-contract-address your-WDoge-logic-contract-address proxy-admin-address encoded-initializer-arguments
 ```
 
 This verifies the proxy source code but there is more.
