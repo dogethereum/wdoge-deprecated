@@ -202,9 +202,11 @@ async function getContractDescription(
     sourceName,
     address: contract.address,
     ...(proxyAdmin !== undefined && {
-      logicContractAddress,
-      proxyAdmin,
-      initData,
+      proxyConstructorArgs: {
+        logicContractAddress,
+        proxyAdmin,
+        initData,
+      }
     }),
     bytecodeAndSymbols,
   };

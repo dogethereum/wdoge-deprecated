@@ -211,7 +211,7 @@ Note that you need these values as they were sent in the deployment transaction,
 2. The admin argument is the initial administrator account.
 3. The `_data` parameter is the ABI encoded call to the initializer function in the logic contract.
 
-Run `jq '.contracts.dogeToken | {logicContractAddress, proxyAdmin, initData}' deployment/your-network/deployment.json` to get them.
+Run `jq .contracts.dogeToken.proxyConstructorArgs deployment/your-network/deployment.json` to get them.
 
 With all these you can now verify the proxy contract:
 
