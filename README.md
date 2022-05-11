@@ -322,6 +322,51 @@ Token migration call data is 0x454b060800000000000000000000000000000000000000000
 
 You can copy and paste the hex encoded string into the `data (bytes)` field of the `upgradeToAndCall` function to invoke it atomically during the upgrade transaction.
 
+#### Dealing with a low gas price transaction
+
+If during the upgrade preparation you find yourself with the following error:
+
+```
+An unexpected error occurred:
+
+Error: Timed out waiting for implementation contract deployment to address 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9 with transaction 0xb5f93fb9196054fad710cfd2b69fa7c48767661967e7a0f26a6438ff645a537e
+
+Run the function again to continue waiting for the transaction confirmation. If the problem persists, adjust the polling parameters with the timeout and pollingInterval options.
+```
+
+then the transaction probably has a low gas price for the current network conditions. By default, the `dogethereum.upgradeToken` task waits for 60 seconds before timing out.
+
+To send a transaction with higher gas price overriding the current one you can do the following:
+
+1. Assume the tx hash is `0xb5f93fb9196054fad710cfd2b69fa7c48767661967e7a0f26a6438ff645a537e` as shown in the error.
+2. Open the manifest `.openzeppelin/your-network.json`.
+3. Search for the tx hash in the manifest.
+It should look like this:
+```
+[...]
+    },
+    "9bf3ba1091887e531235ce3f59fa591318e88fc5024ac7cb2928665ac379a707": {
+      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "txHash": "0xb5f93fb9196054fad710cfd2b69fa7c48767661967e7a0f26a6438ff645a537e",
+[...]
+```
+4. Erase the entire entry that contains the `txHash` field that matches the pending tx hash.
+The result should erase the key and value marked with an arrow:
+```
+[...]
+    },
+    "9bf3ba1091887e531235ce3f59fa591318e88fc5024ac7cb2928665ac379a707": {  <---------------
+      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "txHash": "0xb5f93fb9196054fad710cfd2b69fa7c48767661967e7a0f26a6438ff645a537e",
+[...]
+```
+5. Reexecute the upgrade task specifying the `--nonce`, `--max-fee-per-gas`, `--max-priority-fee-per-gas` options.
+E.g:
+```sh
+hh --network rinkeby dogethereum.upgradeToken --new-logic-contract DummyToken --nonce 8 --max-fee-per-gas 60 --max-priority-fee-per-gas 2
+```
+The `nonce` option should be the same nonce as the one in tx `0xb5f93fb9196054fad710cfd2b69fa7c48767661967e7a0f26a6438ff645a537e` and `--max-fee-per-gas`, `--max-priority-fee-per-gas` should be at least 10% higher than the one in tx `0xb5f93fb9196054fad710cfd2b69fa7c48767661967e7a0f26a6438ff645a537e`.
+
 #### Executing an upgrade
 
 This assumes that the proxy administrator is a [gnosis safe](https://gnosis-safe.io/) multisig contract.
