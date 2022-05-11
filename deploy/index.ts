@@ -301,6 +301,9 @@ const deployProxy: DeployF = async (
     ...(logicGasLimit !== undefined && { implementationGasLimit: logicGasLimit }),
     ...(nonce !== undefined && { nonce }),
     proxyAdmin,
+    // This ensures there's no error thrown for taking too long to confirm a transaction.
+    // Alternatively, we could handle partial deploys better than we do now.
+    timeout: 0,
   });
   await contract.deployTransaction.wait(confirmations);
   return {
