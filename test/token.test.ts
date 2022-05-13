@@ -574,7 +574,7 @@ describe("WDoge", function () {
         assert.lengthOf(events, 1);
         const event = events[0];
         assert.isDefined(event.args);
-        assert.strictEqual(event.args!.txId, someTxId);
+        assert.strictEqual(event.args!.dogeLockTxId, someTxId);
       });
     });
   });
