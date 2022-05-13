@@ -11,7 +11,8 @@ async function mockTransfers() {
   const workingSupply = hre.ethers.BigNumber.from(10).pow(20);
   const wDoge = deployment.wDoge.contract.connect(tokenAdmin);
 
-  let tx: ContractTransaction = await wDoge.mint(workingSupply);
+  const dummyTxId = `0x${"0".repeat(64)}`;
+  let tx: ContractTransaction = await wDoge.mint(workingSupply, dummyTxId);
   await tx.wait();
   tx = await wDoge.transfer(userA.address, hre.ethers.BigNumber.from(10).pow(17));
   await tx.wait();

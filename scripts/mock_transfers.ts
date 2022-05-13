@@ -7,7 +7,8 @@ async function mockTransfers() {
   // dogecoin has 8 decimals so 10^15 units = 10^7 wDoges
   const totalSupply = hre.ethers.BigNumber.from(10).pow(15);
   const wDoge = deployment.wDoge.contract.connect(deployment.wDoge.tokenAdmin);
-  await wDoge.mint(totalSupply);
+  const dummyTxId = `0x${"0".repeat(64)}`;
+  await wDoge.mint(totalSupply, dummyTxId);
 
   const accounts = await hre.ethers.getSigners();
   const userA = accounts[3];

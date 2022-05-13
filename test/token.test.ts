@@ -9,6 +9,7 @@ import { deployFixture } from "../deploy";
 import { expectFailure, getEvents, isolateEachTest, isolateTests } from "./utils";
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+const dummyTxId = `0x${"0".repeat(64)}`;
 // Note that bn.js can't parse MAX_UINT256 as a hex string.
 const MAX_UINT256 = new BN(1).shln(256).subn(1);
 
@@ -31,7 +32,7 @@ describe("WDoge", function () {
     const deploy = await deployFixture(hre);
     initialHolder = deploy.wDoge.tokenAdmin;
     wDoge = deploy.wDoge.contract.connect(initialHolder);
-    await wDoge.mint(initialSupply);
+    await wDoge.mint(initialSupply, dummyTxId);
     const accounts = await hre.ethers.getSigners();
     recipient = accounts[3];
     anotherAccount = accounts[4];
@@ -538,9 +539,10 @@ describe("WDoge", function () {
     const amount = 50;
 
     describe("for a non zero account", function () {
+      const someTxId = "0x0000000000000000000000000000000000000000000000000000000000001234";
       let receipt: ethers.ContractTransaction;
       beforeEach("minting", async function () {
-        receipt = await wDoge.mint(amount);
+        receipt = await wDoge.mint(amount, someTxId);
       });
 
       it("increments totalSupply", async function () {
@@ -550,7 +552,7 @@ describe("WDoge", function () {
 
       it("fails when exceeding 10M totalSupply", async function () {
         const tenMillion = (new BN(10)).pow(new BN(15)).toString();
-        await expectFailure(() => wDoge.mint(tenMillion), (error) => {
+        await expectFailure(() => wDoge.mint(tenMillion, someTxId), (error) => {
           assert.include(error.message, "MintLimitExceeded()");
         });
       });
@@ -565,6 +567,14 @@ describe("WDoge", function () {
 
       it("emits Transfer event", async function () {
         expectTransfer(receipt, ZERO_ADDRESS, recipient, amount.toString());
+      });
+
+      it("emits Minted event", async function () {
+        const { events } = await getEvents(receipt, "Minted");
+        assert.lengthOf(events, 1);
+        const event = events[0];
+        assert.isDefined(event.args);
+        assert.strictEqual(event.args!.txId, someTxId);
       });
     });
   });

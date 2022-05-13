@@ -12,6 +12,11 @@ contract WDoge is Initializable, ERC20Upgradeable, OwnableUpgradeable {
   constructor() initializer {}
 
   /**
+   * @param txId Dogecoin tx id of the lock tx that this mint corresponds to.
+   */
+  event Minted(bytes32 txId);
+
+  /**
    * The total supply cannot exceed 10 million tokens.
    */
   error MintLimitExceeded();
@@ -25,14 +30,25 @@ contract WDoge is Initializable, ERC20Upgradeable, OwnableUpgradeable {
     _transferOwnership(tokenAdmin);
   }
 
-  function mint(uint256 amount) public onlyOwner {
+  /**
+   * @notice Allows the token admin to mint wdoges to process a dogecoin lock tx.
+   * @param amount Quantity of tokens to mint.
+   * @param txId Dogecoin tx id of the lock tx that this mint corresponds to.
+   */
+  function mint(uint256 amount, bytes32 txId) public onlyOwner {
     // We limit the total supply to 10 million tokens
     // 10M tokens = 10e7 tokens = 10e7 * (10 ** decimals) indivisible token units
     uint256 maxTotalSupply = 10**(7 + decimals());
     if (amount + totalSupply() > maxTotalSupply) revert MintLimitExceeded();
     _mint(owner(), amount);
+    emit Minted(txId);
   }
 
+
+  /**
+   * @notice Allows the token admin to burn wdoges to process a dogecoin unlock tx.
+   * @param amount Quantity of tokens to mint.
+   */
   function burn(uint256 amount) public onlyOwner {
     _burn(owner(), amount);
   }
