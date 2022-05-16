@@ -9,11 +9,7 @@ The Dogecoin-Ethereum bridge requires a token to represent doges in the Ethereum
 Optional:
 
 - [jq](https://stedolan.github.io/jq/). This is not a hard requirement but it is recommended since some shell commands suggested in this readme use it.
-- [Hardhat shorthand](https://hardhat.org/guides/shorthand.html). Several snippets assume you have installed it. In general, `hh` invocations can be replaced with a Hardhat invocation through `npx` like so:
-
-```sh
-npx hardhat
-```
+- [Hardhat shorthand](https://hardhat.org/guides/shorthand.html). Several snippets assume you have installed it. In general, `hh` invocations can be replaced with a Hardhat invocation through `npx` like so: `npx hardhat`
 
 ## Installing
 
@@ -27,41 +23,6 @@ To run tests or deployment you need to install the root package dependencies. To
 There are unit tests for the token contract.
 
 Use `npm test` to run them.
-
-## Usage
-
-### Viewing your balance in MetaMask
-
-1. Select your account.
-2. Go to `Assets` tab.
-3. Click `Import tokens`.
-4. Paste the token contract address. The contract should have the `WDogeProxy` contract name.
-5. Wait for the Token Symbol and Token Decimals to be auto detected.
-6. Click `Add Custom Token`.
-7. Click `Import Tokens`.
-
-Now you should see your token balance.
-
-### Sending tokens in MetaMask
-
-This requires [registering the token](#viewing-your-balance-in-metamask) previously.
-To send tokens to another account
-
-1. Select your account.
-2. Go to `Assets` tab.
-3. Click the row that has the token symbol.
-4. Click the `Send` button.
-5. Choose the destination account.
-6. Choose the amount.
-7. Click Next.
-8. (Optional) Edit the gas fees.
-9. Click Confirm.
-
-Eventually, the transaction should be confirmed.
-
-### Getting the token ABI
-
-First, run `hh compile`. Then run `jq .abi artifacts/contracts/WDoge.sol/WDoge.json`.
 
 ## Deployment
 
@@ -139,7 +100,7 @@ Some of these options are:
 - `--max-fee-per-gas`: maximum fee per unit of gas.
 - `--max-priority-fee-per-gas`: maximum priority fee per unit of gas.
 
-### Verification
+## Verification
 
 To verify a contract we use the hardhat-etherscan plugin. These are the inputs needed for a successful verification:
 
@@ -157,7 +118,7 @@ The following sections ([Logic contracts](#logic-contracts) and [Proxy contracts
 
 If Etherscan recognizes the contract bytecode as a similar match to another verified contract, refer to the [similar match](#similar-match) section for details on how to achieve an exact match verification.
 
-#### Logic contracts
+### Logic contracts
 
 First of all, the address for the logic contract is needed. We are going to use the WDoge logic contract as an example here.
 
@@ -189,7 +150,7 @@ Note that there are no constructor arguments for the `WDoge` logic contract. In 
 
 Once that's done, it's verified. Of course, if you have more than one logic contract, you'll need to repeat the process until all of them are verified. If your contract actually has constructor arguments you'll need to provide them. Refer to the `hardhat-etherscan` help by running `hh verify --help` or checking its [README](https://github.com/NomicFoundation/hardhat/tree/master/packages/hardhat-etherscan#readme).
 
-#### Proxy contracts
+### Proxy contracts
 
 We are going to use the WDoge proxy as an example here.
 
@@ -236,7 +197,7 @@ To enable these, it is necessary to request Etherscan to recognize the contract 
 This can be done by going to the `Contract` tab, pressing the `More Options` button and choosing the `Is this a proxy?` option.
 
 
-#### Similar match
+### Similar match
 
 It is possible that the source code for the contract was already supplied by etherscan due to it recognizing the contract bytecode.
 
@@ -244,7 +205,42 @@ TODO
 
 See https://info.etherscan.com/types-of-contract-verification/ and https://info.etherscan.com/update-on-similar-match-contract-verification/
 
-### Upgrades
+## Usage
+
+### Viewing your balance in MetaMask
+
+1. Select your account.
+2. Go to `Assets` tab.
+3. Click `Import tokens`.
+4. Paste the token contract address. The contract should have the `WDogeProxy` contract name.
+5. Wait for the Token Symbol and Token Decimals to be auto detected.
+6. Click `Add Custom Token`.
+7. Click `Import Tokens`.
+
+Now you should see your token balance.
+
+### Sending tokens in MetaMask
+
+This requires [registering the token](#viewing-your-balance-in-metamask) previously.
+To send tokens to another account
+
+1. Select your account.
+2. Go to `Assets` tab.
+3. Click the row that has the token symbol.
+4. Click the `Send` button.
+5. Choose the destination account.
+6. Choose the amount.
+7. Click Next.
+8. (Optional) Edit the gas fees.
+9. Click Confirm.
+
+Eventually, the transaction should be confirmed.
+
+### Getting the token ABI
+
+First, run `hh compile`. Then run `jq .abi artifacts/contracts/WDoge.sol/WDoge.json`.
+
+## Upgrades
 
 There is an upgrade task that helps prepare an upgrade so it can be finalized using a multisig wallet or cold wallet.
 
@@ -258,7 +254,7 @@ The upgrade process consists of the following two transactions:
 2. The proxy upgrade transaction itself.
   - This transaction can call an initialization function optionally. See [this section](#specifying-migration-call) for more details.
 
-#### Preparing the upgrade
+### Preparing the upgrade
 
 There is only one task parameter that is mandatory. The `--new-logic-contract` parameter must be set to the name of the logic contract. If the contract name is not unique in the contracts directory, the fully qualified name may be necessary instead. E.g. the fully qualified name for `DummyToken` is `contracts/DummyToken.sol:DummyToken`.
 
@@ -273,7 +269,7 @@ Other task parameters can be seen invoking `hh dogethereum.upgradeToken --help`.
 
 In particular, you may be interested in [specifying a migration or initialization call](#specifying-migration-call) to be done when the upgrade is executed.
 
-#### Specifying migration call
+### Specifying migration call
 
 The upgrade task allows you to specify the migration contract call with a javascript module.
 
@@ -322,7 +318,7 @@ Token migration call data is 0x454b060800000000000000000000000000000000000000000
 
 You can copy and paste the hex encoded string into the `data (bytes)` field of the `upgradeToAndCall` function to invoke it atomically during the upgrade transaction.
 
-#### Dealing with a low gas price transaction
+### Dealing with a low gas price transaction
 
 If during the upgrade preparation you find yourself with the following error:
 
@@ -367,7 +363,7 @@ hh --network rinkeby dogethereum.upgradeToken --new-logic-contract DummyToken --
 ```
 The `nonce` option should be the same nonce as the one in tx `0xb5f93fb9196054fad710cfd2b69fa7c48767661967e7a0f26a6438ff645a537e` and `--max-fee-per-gas`, `--max-priority-fee-per-gas` should be at least 10% higher than the one in tx `0xb5f93fb9196054fad710cfd2b69fa7c48767661967e7a0f26a6438ff645a537e`.
 
-#### Executing an upgrade
+### Executing an upgrade
 
 This assumes that the proxy administrator is a [gnosis safe](https://gnosis-safe.io/) multisig contract.
 
