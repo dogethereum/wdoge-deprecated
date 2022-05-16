@@ -372,14 +372,14 @@ This assumes that the proxy administrator is a [gnosis safe](https://gnosis-safe
 3. Click "Contract interaction"
 4. Paste the WDoge proxy address. See [here](#reading-the-proxy-state) to get the address.
 5. Paste the `WDogeProxy` ABI. To get the ABI:
-  1. Run `hh compile` to ensure contracts are compiled.
-  2. Run `jq .abi artifacts/contracts/WDogeProxy.sol/WDogeProxy.json` to get the ABI.
+    1. Run `hh compile` to ensure contracts are compiled.
+    2. Run `jq .abi artifacts/contracts/WDogeProxy.sol/WDogeProxy.json` to get the ABI.
 6. Select either `upgradeTo` or `upgradeToAndCall` as the method.
-  - If there's no migration or initialization contract call then you want the `upgradeTo` method.
+    - If there's no migration or initialization contract call then you want the `upgradeTo` method.
 7. Paste the new logic contract address in the `newImplementation` textbox.
 8. (Optional) If you're using the `upgradeToAndCall`, then
-  1. input the amount of ETH to send in the `Value` textbox.
-  2. input the encoded migration call in the `data` textbox.
+    1. input the amount of ETH to send in the `Value` textbox.
+    2. input the encoded migration call in the `data` textbox.
 9. Click the `Preview` button.
 10. Click the `Submit` button.
 11. Approve the transaction so it is signed.
