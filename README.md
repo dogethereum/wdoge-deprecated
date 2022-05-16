@@ -2,6 +2,26 @@
 
 The Dogecoin-Ethereum bridge requires a token to represent doges in the Ethereum network. This repository contains a token contract that fulfills this goal.
 
+## System overview
+
+The token is built on top of two contracts deployed to two separate accounts:
+1. The proxy. This contract allows upgrading the token implementation.
+2. The token implementation. This contract implements the ERC20 interface and a few more functions for minting, burning and transferring the ownership of the contract.
+
+There are three user roles in the system:
+- Proxy admin.
+  - Can execute upgrades.
+  - Cannot interact with the token functionality. E.g. the proxy admin can't transfer tokens they possess.
+- Token owner.
+  - Can mint and burn tokens.
+  - Can transfer the "ownership" of the token contract.
+- Token holder.
+  - Can use any function of the ERC20 interface, plus some extra non standard functions defined in the OpenZeppelin ERC20 token implementation.
+
+It is important to note that the proxy admin cannot be a token holder nor token owner.
+On the other hand, the token owner can be a token holder too.
+There is only one token owner at any given point after block execution.
+
 ## Prerequisites
 
 - [nodejs](https://nodejs.org) [latest LTS](https://nodejs.org/en/about/releases/) or above. This is currently fermium (v14).
@@ -26,7 +46,7 @@ Use `npm test` to run them.
 
 ## Deployment
 
-There is a Hardhat task that deploys the token. It is meant for both testnet and mainnet networks.
+There is a Hardhat task that deploys the token system. It is meant for both testnet and mainnet networks.
 
 Here are step-by-step instructions for deployment. They assume an [Infura JSON-RPC endpoint](https://infura.io) is used.
 
