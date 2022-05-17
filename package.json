@@ -4,15 +4,15 @@
   "description": "",
   "directories": {},
   "dependencies": {
-    "@openzeppelin/contracts-upgradeable": "^4.5.2"
+    "@openzeppelin/contracts-upgradeable": "^4.5.2",
+    "@openzeppelin/contracts": "^4.5.0"
   },
   "devDependencies": {
     "@dogethereum/hardhat-upgrades": "^1.17.3",
     "@nomiclabs/hardhat-ethers": "^2.0.5",
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
-    "@openzeppelin/contracts": "^4.5.0",
     "@types/bn.js": "^5.1.0",
-    "@types/chai": "^4.2.17",
+    "@types/chai": "^4.3.1",
     "@types/fs-extra": "^9.0.13",
     "@types/mocha": "^9.1.0",
     "@types/node": "^14.14.31",
