@@ -81,7 +81,7 @@ Ensure the correct network is passed to the --network parameter.`
   );
 
   console.log(
-    `Token implementation contract is deployed at address ${chalk.green(upgrade.implementation)}${
+    `Token implementation address is ${chalk.green(upgrade.implementation)}${
       upgrade.initData !== undefined
         ? `
 Token migration call data is ${chalk.green(upgrade.initData)}`

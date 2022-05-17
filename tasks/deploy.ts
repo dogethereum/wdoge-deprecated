@@ -88,7 +88,7 @@ Provide an explicit proxy administrator address with the '--proxy-admin' option.
   Proxy address is ${chalk.green(deployment.wDoge.contract.address)}
   Proxy admin is ${chalk.green(proxyAdmin || deployer.address)}
   Token owner is ${chalk.green(tokenOwner)}
-  Token implementation address ${chalk.green(deployment.wDoge.implementationContractAddress)}`);
+  Token implementation address is ${chalk.green(deployment.wDoge.implementationContractAddress)}`);
 
   return storeDeployment(hre, deployment, deploymentDir);
 };
