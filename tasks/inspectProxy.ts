@@ -22,12 +22,10 @@ Ensure the correct network is passed to the --network parameter.`
   const { wDoge } = await loadDeployment(hre, deploymentDir);
 
   console.log(`WDoge proxy:
-  Token address is ${chalk.green(wDoge.contract.address)}
-  Token administrator is ${chalk.green(wDoge.tokenAdmin)}
-  Proxy administrator is ${chalk.green(wDoge.proxyAdmin)}
-  The proxy currently forwards calls to implementation contract at address ${chalk.green(
-    wDoge.logicContractAddress
-  )}`);
+  Proxy address is ${chalk.green(wDoge.contract.address)}
+  Proxy admin is ${chalk.green(wDoge.proxyAdmin)}
+  Token owner is ${chalk.green(wDoge.tokenAdmin)}
+  Token implementation address is ${chalk.green(wDoge.logicContractAddress)}`);
 };
 
 export const inspectProxyTaskName = generateTaskName("inspectProxy");
