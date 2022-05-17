@@ -78,7 +78,7 @@ const config: HardhatUserConfig = {
     },
   },
   // other config fields
-}
+};
 ```
 4. Ensure your proxy admin address has enough ether for deployment. The total deployment cost shouldn't be higher than 2M gas.
 5. Invoke the Hardhat deploy task:
@@ -112,7 +112,7 @@ const config: HardhatUserConfig = {
     },
   },
   // other config fields
-}
+};
 ```
 4. Ensure your deployer address has enough ether for deployment. The total deployment cost shouldn't be higher than 2M gas. You may want to specify [base fee and priority fees](#other-deployment-options) in the next step.
 5. Invoke the Hardhat deploy task:
@@ -177,12 +177,13 @@ Where `your-network` is the name of the network you used while running the deplo
 Once you have the address of the `WDoge` contract, you can run the Hardhat `verify` task to verify its source code.
 
 1. Set the `etherscan` property of your [hardhat config] like this:
-```js
-{
+```ts
+const config: HardhatUserConfig = {
   etherscan: {
     apiKey: "your-etherscan-api-key"
-  }
-}
+  },
+  // other config fields
+};
 ```
 2. Run the Hardhat verify task:
 ```sh
@@ -221,11 +222,12 @@ With all these you can now verify the proxy contract:
 
 1. Ensure the `etherscan` property of your [hardhat config] contains your Etherscan API key:
 ```js
-{
+const config: HardhatUserConfig = {
   etherscan: {
     apiKey: "your-etherscan-api-key"
-  }
-}
+  },
+  // other config fields
+};
 ```
 2. Run the Hardhat verify task:
 ```sh
