@@ -24,8 +24,8 @@ Ensure the correct network is passed to the --network parameter.`
   console.log(`WDoge proxy:
   Proxy address is ${chalk.green(wDoge.contract.address)}
   Proxy admin is ${chalk.green(wDoge.proxyAdmin)}
-  Token owner is ${chalk.green(wDoge.tokenAdmin)}
-  Token implementation address is ${chalk.green(wDoge.logicContractAddress)}`);
+  Token owner is ${chalk.green(wDoge.tokenOwner)}
+  Token implementation address is ${chalk.green(wDoge.implementationContractAddress)}`);
 };
 
 export const inspectProxyTaskName = generateTaskName("inspectProxy");

@@ -11,8 +11,8 @@ import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.so
  */
 contract WDogeProxy is TransparentUpgradeableProxy {
   constructor(
-    address logic,
+    address implementation,
     address admin,
     bytes memory data
-  ) TransparentUpgradeableProxy(logic, admin, data) {}
+  ) TransparentUpgradeableProxy(implementation, admin, data) {}
 }

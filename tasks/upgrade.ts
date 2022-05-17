@@ -17,7 +17,7 @@ import { generateTaskName, xor } from "./common";
 
 export interface UpgradeTokenTaskArguments {
   confirmations: number;
-  newLogicContract: string;
+  newImplementationContract: string;
   callArgs?: string;
   maxFeePerGas?: string;
   maxPriorityFeePerGas?: string;
@@ -31,7 +31,7 @@ export interface UpgradeTokenTaskArguments {
 const upgradeCommand: ActionType<UpgradeTokenTaskArguments> = async function (
   {
     confirmations,
-    newLogicContract,
+    newImplementationContract,
     callArgs: callArgsModule,
     tokenGasLimit,
     maxFeePerGas,
@@ -48,7 +48,7 @@ const upgradeCommand: ActionType<UpgradeTokenTaskArguments> = async function (
   // TODO: validate maxFeePerGas and maxPriorityFeePerGas
 
   const callArgs = callArgsModule !== undefined ? await readCall(callArgsModule) : undefined;
-  const logicFactory = await hre.ethers.getContractFactory(newLogicContract);
+  const implementationFactory = await hre.ethers.getContractFactory(newImplementationContract);
 
   if (confirmations < 1) throw new Error("Confirmations can't be lower than 1.");
 
@@ -64,7 +64,7 @@ Ensure the correct network is passed to the --network parameter.`
 
   const upgrade = await prepareUpgradeToken(
     hre,
-    logicFactory,
+    implementationFactory,
     wDoge.contract.address,
     {
       confirmations,
@@ -74,14 +74,14 @@ Ensure the correct network is passed to the --network parameter.`
       ...(maxPriorityFeePerGas !== undefined && {
         maxPriorityFeePerGas: hre.ethers.utils.parseUnits(maxPriorityFeePerGas, "gwei"),
       }),
-      ...(tokenGasLimit !== undefined && { logicGasLimit: tokenGasLimit }),
+      ...(tokenGasLimit !== undefined && { implementationGasLimit: tokenGasLimit }),
       ...(nonce !== undefined && { nonce }),
     },
     callArgs
   );
 
   console.log(
-    `Token logic is deployed at address ${chalk.green(upgrade.implementation)}${
+    `Token implementation contract is deployed at address ${chalk.green(upgrade.implementation)}${
       upgrade.initData !== undefined
         ? `
 Token migration call data is ${chalk.green(upgrade.initData)}`
@@ -113,8 +113,8 @@ export const upgradeTaskName = generateTaskName("upgradeToken");
 
 task(upgradeTaskName, "Upgrades doge token.")
   .addParam(
-    "newLogicContract",
-    "The name of the logic contract used in the upgrade.",
+    "newImplementationContract",
+    "The name of the implementation contract used in the upgrade.",
     undefined,
     types.string
   )
@@ -140,7 +140,7 @@ task(upgradeTaskName, "Upgrades doge token.")
   )
   .addOptionalParam(
     "tokenGasLimit",
-    "The maximum amount of gas allowed in token logic deploy tx execution. Autodetected if not set.",
+    "The maximum amount of gas allowed in token implementation deploy tx execution. Autodetected if not set.",
     undefined,
     types.int
   )

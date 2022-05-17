@@ -30,7 +30,7 @@ describe("WDoge", function () {
 
   before(async function () {
     const deploy = await deployFixture(hre);
-    initialHolder = deploy.wDoge.tokenAdmin;
+    initialHolder = deploy.wDoge.tokenOwner;
     wDoge = deploy.wDoge.contract.connect(initialHolder);
     await wDoge.mint(initialSupply, dummyTxId);
     const accounts = await hre.ethers.getSigners();
@@ -61,9 +61,9 @@ describe("WDoge", function () {
   describe("balanceOf", function () {
     describe("when the requested account has no tokens", function () {
       it("returns zero", async function () {
-        expect(
-          (await wDoge.balanceOf(anotherAccount.address)).toString()
-        ).to.be.bignumber.equal("0");
+        expect((await wDoge.balanceOf(anotherAccount.address)).toString()).to.be.bignumber.equal(
+          "0"
+        );
       });
     });
 
@@ -93,9 +93,9 @@ describe("WDoge", function () {
         it("transfers the requested amount", async function () {
           await wDoge.transfer(recipient.address, amount);
 
-          expect(
-            (await wDoge.balanceOf(initialHolder.address)).toString()
-          ).to.be.bignumber.equal("0");
+          expect((await wDoge.balanceOf(initialHolder.address)).toString()).to.be.bignumber.equal(
+            "0"
+          );
 
           expect((await wDoge.balanceOf(recipient.address)).toString()).to.be.bignumber.equal(
             amount
@@ -116,13 +116,11 @@ describe("WDoge", function () {
         it("transfers the requested amount", async function () {
           await wDoge.transfer(recipient.address, amount);
 
-          expect(
-            (await wDoge.balanceOf(initialHolder.address)).toString()
-          ).to.be.bignumber.equal(initialSupply.toString());
-
-          expect((await wDoge.balanceOf(recipient.address)).toString()).to.be.bignumber.equal(
-            "0"
+          expect((await wDoge.balanceOf(initialHolder.address)).toString()).to.be.bignumber.equal(
+            initialSupply.toString()
           );
+
+          expect((await wDoge.balanceOf(recipient.address)).toString()).to.be.bignumber.equal("0");
         });
 
         it("emits a transfer event", async function () {
@@ -173,13 +171,11 @@ describe("WDoge", function () {
             it("transfers the requested amount", async function () {
               await wDoge.connect(spender).transferFrom(tokenOwner.address, to.address, amount);
 
-              expect(
-                (await wDoge.balanceOf(tokenOwner.address)).toString()
-              ).to.be.bignumber.equal("0");
-
-              expect((await wDoge.balanceOf(to.address)).toString()).to.be.bignumber.equal(
-                amount
+              expect((await wDoge.balanceOf(tokenOwner.address)).toString()).to.be.bignumber.equal(
+                "0"
               );
+
+              expect((await wDoge.balanceOf(to.address)).toString()).to.be.bignumber.equal(amount);
             });
 
             it("decreases the spender allowance", async function () {
@@ -217,8 +213,7 @@ describe("WDoge", function () {
 
             it("reverts", async function () {
               await expectFailure(
-                () =>
-                  wDoge.connect(spender).transferFrom(tokenOwner.address, to.address, amount),
+                () => wDoge.connect(spender).transferFrom(tokenOwner.address, to.address, amount),
                 (error) => assert.include(error.message, `transfer amount exceeds balance`)
               );
             });
@@ -237,8 +232,7 @@ describe("WDoge", function () {
 
             it("reverts", async function () {
               await expectFailure(
-                () =>
-                  wDoge.connect(spender).transferFrom(tokenOwner.address, to.address, amount),
+                () => wDoge.connect(spender).transferFrom(tokenOwner.address, to.address, amount),
                 (error) => assert.include(error.message, `insufficient allowance`)
               );
             });
@@ -253,8 +247,7 @@ describe("WDoge", function () {
 
             it("reverts", async function () {
               await expectFailure(
-                () =>
-                  wDoge.connect(spender).transferFrom(tokenOwner.address, to.address, amount),
+                () => wDoge.connect(spender).transferFrom(tokenOwner.address, to.address, amount),
                 (error) => assert.include(error.message, `transfer amount exceeds balance`)
               );
             });
@@ -551,16 +544,19 @@ describe("WDoge", function () {
       });
 
       it("fails when exceeding 10M totalSupply", async function () {
-        const tenMillion = (new BN(10)).pow(new BN(15)).toString();
-        await expectFailure(() => wDoge.mint(tenMillion, someTxId), (error) => {
-          assert.include(error.message, "MintLimitExceeded()");
-        });
+        const tenMillion = new BN(10).pow(new BN(15)).toString();
+        await expectFailure(
+          () => wDoge.mint(tenMillion, someTxId),
+          (error) => {
+            assert.include(error.message, "MintLimitExceeded()");
+          }
+        );
       });
 
       it("increments recipient balance", async function () {
-        const tokenAdmin = wDoge.owner();
+        const tokenOwner = wDoge.owner();
         const expectedBalance = (initialSupply + amount).toString();
-        expect((await wDoge.balanceOf(tokenAdmin)).toString()).to.be.bignumber.equal(
+        expect((await wDoge.balanceOf(tokenOwner)).toString()).to.be.bignumber.equal(
           expectedBalance
         );
       });
@@ -601,9 +597,9 @@ describe("WDoge", function () {
 
         it("decrements initialHolder balance", async function () {
           const expectedBalance = (initialSupply - amount).toString();
-          expect(
-            (await wDoge.balanceOf(initialHolder.address)).toString()
-          ).to.be.bignumber.equal(expectedBalance);
+          expect((await wDoge.balanceOf(initialHolder.address)).toString()).to.be.bignumber.equal(
+            expectedBalance
+          );
         });
 
         it("emits Transfer event", async function () {
@@ -616,8 +612,8 @@ describe("WDoge", function () {
     describeBurn("for less amount than balance", initialSupply - 1);
   });
 
-  describe("getVersion", function() {
-    it("returns 1", async function() {
+  describe("getVersion", function () {
+    it("returns 1", async function () {
       const version = await wDoge.getVersion();
       assert.equal(version, 1);
     });
@@ -627,7 +623,7 @@ describe("WDoge", function () {
 describe("WDoge initialize function", function () {
   isolateTests();
 
-  it("initialize doesn't work in logic contract", async function () {
+  it("initialize doesn't work in implementation contract", async function () {
     const tokenFactory = await hre.ethers.getContractFactory("WDoge");
     const token = await tokenFactory.deploy();
     const validAddress = await tokenFactory.signer.getAddress();

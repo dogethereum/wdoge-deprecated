@@ -15,7 +15,7 @@ import { generateTaskName, xor } from "./common";
 
 export interface DeployTokenTaskArguments {
   confirmations: number;
-  tokenAdmin: string;
+  tokenOwner: string;
   proxyAdmin?: string;
   maxFeePerGas?: string;
   maxPriorityFeePerGas?: string;
@@ -30,7 +30,7 @@ export interface DeployTokenTaskArguments {
 const deployCommand: ActionType<DeployTokenTaskArguments> = async function (
   {
     confirmations,
-    tokenAdmin,
+    tokenOwner,
     proxyAdmin,
     tokenGasLimit,
     proxyGasLimit,
@@ -47,7 +47,7 @@ const deployCommand: ActionType<DeployTokenTaskArguments> = async function (
   }
   // TODO: validate maxFeePerGas and maxPriorityFeePerGas
 
-  if (!hre.ethers.utils.isAddress(tokenAdmin)) {
+  if (!hre.ethers.utils.isAddress(tokenOwner)) {
     throw new Error("Invalid Ethereum address for the token administrator.");
   }
   if (proxyAdmin !== undefined && !hre.ethers.utils.isAddress(proxyAdmin)) {
@@ -64,12 +64,12 @@ const deployCommand: ActionType<DeployTokenTaskArguments> = async function (
   }
 
   const [deployer] = await hre.ethers.getSigners();
-  if (tokenAdmin.toLowerCase() === (proxyAdmin || deployer.address).toLowerCase()) {
+  if (tokenOwner.toLowerCase() === (proxyAdmin || deployer.address).toLowerCase()) {
     throw new Error(`The proxy administrator and the token administrator need to be different addresses.
 Provide an explicit proxy administrator address with the '--proxy-admin' option.`);
   }
   const deployment = await deployToken(hre, deployer, {
-    tokenAdmin,
+    tokenOwner,
     useProxy: true,
     confirmations,
     ...(maxFeePerGas !== undefined && {
@@ -79,7 +79,7 @@ Provide an explicit proxy administrator address with the '--proxy-admin' option.
       maxPriorityFeePerGas: hre.ethers.utils.parseUnits(maxPriorityFeePerGas, "gwei"),
     }),
     ...(proxyGasLimit !== undefined && { proxyGasLimit }),
-    ...(tokenGasLimit !== undefined && { logicGasLimit: tokenGasLimit }),
+    ...(tokenGasLimit !== undefined && { implementationGasLimit: tokenGasLimit }),
     ...(proxyAdmin !== undefined && { proxyAdmin }),
     ...(nonce !== undefined && { nonce }),
   });
@@ -87,8 +87,8 @@ Provide an explicit proxy administrator address with the '--proxy-admin' option.
   console.log(`Deployed token!
   Proxy address is ${chalk.green(deployment.wDoge.contract.address)}
   Proxy admin is ${chalk.green(proxyAdmin || deployer.address)}
-  Token owner is ${chalk.green(tokenAdmin)}
-  Token implementation address ${chalk.green(deployment.wDoge.logicContractAddress)}`);
+  Token owner is ${chalk.green(tokenOwner)}
+  Token implementation address ${chalk.green(deployment.wDoge.implementationContractAddress)}`);
 
   return storeDeployment(hre, deployment, deploymentDir);
 };
@@ -97,8 +97,8 @@ export const deployTaskName = generateTaskName("deployToken");
 
 task(deployTaskName, "Deploys doge token.")
   .addParam(
-    "tokenAdmin",
-    `The Ethereum address of the token administrator. This account can mint and burn tokens.`,
+    "tokenOwner",
+    `The Ethereum address of the token owner. This account can mint and burn tokens.`,
     undefined,
     types.string
   )
@@ -136,7 +136,7 @@ task(deployTaskName, "Deploys doge token.")
   )
   .addOptionalParam(
     "tokenGasLimit",
-    "The maximum amount of gas allowed in token logic deploy tx execution. Autodetected if not set.",
+    "The maximum amount of gas allowed in token implementation deploy tx execution. Autodetected if not set.",
     undefined,
     types.int
   )

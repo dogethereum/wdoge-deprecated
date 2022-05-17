@@ -20,12 +20,12 @@ interface DeployOutput {
    */
   initData?: string;
   /**
-   * Address of the logic contract if this is a proxy.
+   * Address of the implementation contract if this is a proxy.
    */
-  logicContractAddress?: string;
+  implementationContractAddress?: string;
 }
 
-export interface DogethereumContract extends DeployOutput {
+export interface WDogeContract extends DeployOutput {
   /**
    * This is the name of the contract in this project.
    * @dev The fully qualified name should be used if the contract name is not unique.
@@ -33,28 +33,28 @@ export interface DogethereumContract extends DeployOutput {
   name: string;
 }
 
-export type DogethereumToken = DogethereumContract & TokenV1Options;
-export type DogethereumTestToken = DogethereumContract & TokenV1Fixture;
+export type WDogeToken = WDogeContract & TokenV1Options;
+export type WDogeTestToken = WDogeContract & TokenV1Fixture;
 
 export interface TokenV1Options {
   /**
    * Ethereum account with token mint and burn privileges.
    */
-  tokenAdmin: string;
+  tokenOwner: string;
 }
 
 export interface TokenV1Fixture {
   /**
    * Signer with token mint and burn privileges.
    */
-  tokenAdmin: SignerWithAddress;
+  tokenOwner: SignerWithAddress;
 }
 
-export interface DogethereumTokenSystem {
-  wDoge: DogethereumToken;
+export interface WDogeTokenSystem {
+  wDoge: WDogeToken;
 }
-export interface DogethereumTokenFixture {
-  wDoge: DogethereumTestToken;
+export interface WDogeTokenFixture {
+  wDoge: WDogeTestToken;
 }
 
 export type ContractOptions = ContractOptionsSimple & TxOverrides;
@@ -88,9 +88,9 @@ interface TxOverrides {
    */
   maxPriorityFeePerGas?: ethers.BigNumber;
   /**
-   * Maximum amount of gas allowed for logic contract deployment.
+   * Maximum amount of gas allowed for implementation contract deployment.
    */
-  logicGasLimit?: number;
+  implementationGasLimit?: number;
   /**
    * The Ethereum tx nonce. This is a sequence number associated with the signing account.
    */
@@ -186,7 +186,7 @@ export function getDefaultDeploymentPath(hre: HardhatRuntimeEnvironment): string
 
 async function getContractDescription(
   hre: HardhatRuntimeEnvironment,
-  { contract, name, proxyAdmin, initData, logicContractAddress }: DogethereumContract
+  { contract, name, proxyAdmin, initData, implementationContractAddress }: WDogeContract
 ): Promise<ContractInfo> {
   const { sourceName, contractName, abi } = await hre.artifacts.readArtifact(name);
   const fqName = `${sourceName}:${contractName}`;
@@ -203,10 +203,10 @@ async function getContractDescription(
     address: contract.address,
     ...(proxyAdmin !== undefined && {
       proxyConstructorArgs: {
-        logicContractAddress,
+        implementationContractAddress,
         proxyAdmin,
         initData,
-      }
+      },
     }),
     bytecodeAndSymbols,
   };
@@ -214,7 +214,7 @@ async function getContractDescription(
 
 export async function storeDeployment(
   hre: HardhatRuntimeEnvironment,
-  { wDoge }: DogethereumTokenSystem,
+  { wDoge }: WDogeTokenSystem,
   deploymentDir: string
 ): Promise<void> {
   const deploymentInfo: DeploymentInfo = {
@@ -244,7 +244,7 @@ async function reifyContract(
 export async function loadDeployment(
   hre: HardhatRuntimeEnvironment,
   deploymentDir: string = getDefaultDeploymentPath(hre)
-): Promise<DogethereumTokenSystem> {
+): Promise<WDogeTokenSystem> {
   const deploymentInfoPath = path.join(deploymentDir, DEPLOYMENT_JSON_NAME);
   const deploymentInfo: Readonly<DeploymentInfo> = await fs.readJson(deploymentInfoPath);
 
@@ -261,11 +261,9 @@ but found chainId ${deploymentInfo.chainId} instead.`
   return {
     wDoge: {
       ...wDoge,
-      tokenAdmin: await wDoge.contract
-        .connect(hre.ethers.provider)
-        .owner({ from: ZERO_ADDRESS }),
+      tokenOwner: await wDoge.contract.connect(hre.ethers.provider).owner({ from: ZERO_ADDRESS }),
       proxyAdmin: await hre.upgrades.erc1967.getAdminAddress(wDoge.contract.address),
-      logicContractAddress: await hre.upgrades.erc1967.getImplementationAddress(
+      implementationContractAddress: await hre.upgrades.erc1967.getImplementationAddress(
         wDoge.contract.address
       ),
     },
@@ -274,24 +272,27 @@ but found chainId ${deploymentInfo.chainId} instead.`
 
 const deployProxy: DeployF = async (
   hre,
-  logicFactory,
+  implementationFactory,
   {
     initArguments,
     confirmations,
     maxFeePerGas,
     maxPriorityFeePerGas,
-    logicGasLimit,
+    implementationGasLimit,
     proxyGasLimit,
     proxyAdmin,
     nonce,
   }
 ) => {
   if (proxyAdmin === undefined) {
-    proxyAdmin = await logicFactory.signer.getAddress();
+    proxyAdmin = await implementationFactory.signer.getAddress();
   }
 
-  const proxyFactory = await hre.ethers.getContractFactory("WDogeProxy", logicFactory.signer);
-  const contract = await hre.upgrades.deployProxy(logicFactory, initArguments, {
+  const proxyFactory = await hre.ethers.getContractFactory(
+    "WDogeProxy",
+    implementationFactory.signer
+  );
+  const contract = await hre.upgrades.deployProxy(implementationFactory, initArguments, {
     kind: "transparent",
     ...(maxFeePerGas !== undefined && { maxFeePerGas }),
     ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas }),
@@ -299,7 +300,7 @@ const deployProxy: DeployF = async (
       ...(proxyGasLimit !== undefined && { gasLimit: proxyGasLimit }),
       factory: proxyFactory,
     },
-    ...(logicGasLimit !== undefined && { implementationGasLimit: logicGasLimit }),
+    ...(implementationGasLimit !== undefined && { implementationGasLimit }),
     ...(nonce !== undefined && { nonce }),
     proxyAdmin,
     // This ensures there's no error thrown for taking too long to confirm a transaction.
@@ -310,20 +311,29 @@ const deployProxy: DeployF = async (
   return {
     contract,
     proxyAdmin,
-    initData: logicFactory.interface.encodeFunctionData("initialize", initArguments),
-    logicContractAddress: await hre.upgrades.erc1967.getImplementationAddress(contract.address),
+    initData: implementationFactory.interface.encodeFunctionData("initialize", initArguments),
+    implementationContractAddress: await hre.upgrades.erc1967.getImplementationAddress(
+      contract.address
+    ),
   };
 };
 
 const deployPlain: DeployF = async (
   hre,
   factory,
-  { initArguments, confirmations, maxFeePerGas, maxPriorityFeePerGas, nonce, logicGasLimit }
+  {
+    initArguments,
+    confirmations,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+    nonce,
+    implementationGasLimit,
+  }
 ) => {
   const contract = await factory.deploy(...initArguments, {
     ...(maxFeePerGas !== undefined && { maxFeePerGas }),
     ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas }),
-    ...(logicGasLimit !== undefined && { gasLimit: logicGasLimit }),
+    ...(implementationGasLimit !== undefined && { gasLimit: implementationGasLimit }),
     ...(nonce !== undefined && { nonce }),
   });
   await contract.deployTransaction.wait(confirmations);
@@ -336,12 +346,19 @@ const deployPlain: DeployF = async (
 const deployPlainWithInit: DeployF = async (
   hre,
   factory,
-  { initArguments, confirmations, maxFeePerGas, maxPriorityFeePerGas, nonce, logicGasLimit }
+  {
+    initArguments,
+    confirmations,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+    nonce,
+    implementationGasLimit,
+  }
 ) => {
   const contract = await factory.deploy({
     ...(maxFeePerGas !== undefined && { maxFeePerGas }),
     ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas }),
-    ...(logicGasLimit !== undefined && { gasLimit: logicGasLimit }),
+    ...(implementationGasLimit !== undefined && { gasLimit: implementationGasLimit }),
     ...(nonce !== undefined && { nonce }),
   });
   await contract.deployTransaction.wait(confirmations);
@@ -349,7 +366,7 @@ const deployPlainWithInit: DeployF = async (
     ...(maxFeePerGas !== undefined && { maxFeePerGas }),
     ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas }),
     // TODO: actually use another gas limit for the initialization step?
-    ...(logicGasLimit !== undefined && { gasLimit: logicGasLimit }),
+    ...(implementationGasLimit !== undefined && { gasLimit: implementationGasLimit }),
     ...(nonce !== undefined && { nonce: nonce + 1 }),
   });
   await initTx.wait(confirmations);
@@ -379,12 +396,12 @@ export async function deployContract(
 export async function deployToken(
   hre: HardhatRuntimeEnvironment,
   deploySigner: ethers.Signer,
-  { tokenAdmin, useProxy = true, ...txOverrides }: TokenV1Options & UserDeploymentOptions
-): Promise<DogethereumTokenSystem> {
+  { tokenOwner, useProxy = true, ...txOverrides }: TokenV1Options & UserDeploymentOptions
+): Promise<WDogeTokenSystem> {
   const contractName = "WDoge";
   const wDoge = await deployContract(
     contractName,
-    [tokenAdmin],
+    [tokenOwner],
     hre,
     { signer: deploySigner },
     txOverrides,
@@ -394,7 +411,7 @@ export async function deployToken(
     wDoge: {
       ...wDoge,
       name: contractName,
-      tokenAdmin,
+      tokenOwner,
     },
   };
 }
@@ -403,7 +420,7 @@ export async function prepareUpgradeToken(
   hre: HardhatRuntimeEnvironment,
   implementationFactory: ethers.ContractFactory,
   wDogeProxy: string,
-  { maxFeePerGas, maxPriorityFeePerGas, logicGasLimit, nonce }: UserDeploymentOptions,
+  { maxFeePerGas, maxPriorityFeePerGas, implementationGasLimit, nonce }: UserDeploymentOptions,
   callDescriptor?: ContractCall
 ): Promise<UpgradePreparation> {
   const upgrade: Partial<UpgradePreparation> = {};
@@ -421,33 +438,31 @@ export async function prepareUpgradeToken(
   const implementation = await hre.upgrades.prepareUpgrade(wDogeProxy, implementationFactory, {
     ...(maxFeePerGas !== undefined && { maxFeePerGas }),
     ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas }),
-    ...(logicGasLimit !== undefined && { implementationGasLimit: logicGasLimit }),
+    ...(implementationGasLimit !== undefined && { implementationGasLimit }),
     ...(nonce !== undefined && { nonce }),
   });
 
   return { ...upgrade, implementation };
 }
 
-let dogethereumFixture: DogethereumTokenFixture;
+let wDogeFixture: WDogeTokenFixture;
 
 /**
- * This deploys the Dogethereum system the first time it's called.
+ * This deploys the WDoge system the first time it's called.
  * Meant to be used in a test suite.
  * @param hre The Hardhat runtime environment where the deploy takes place.
  */
-export async function deployFixture(
-  hre: HardhatRuntimeEnvironment
-): Promise<DogethereumTokenFixture> {
-  if (dogethereumFixture !== undefined) return dogethereumFixture;
+export async function deployFixture(hre: HardhatRuntimeEnvironment): Promise<WDogeTokenFixture> {
+  if (wDogeFixture !== undefined) return wDogeFixture;
   const signers = await hre.ethers.getSigners();
   const proxyAdmin = signers[signers.length - 1];
-  const tokenAdmin = signers[0];
-  const { wDoge } = await deployToken(hre, proxyAdmin, { tokenAdmin: tokenAdmin.address });
-  dogethereumFixture = {
+  const tokenOwner = signers[0];
+  const { wDoge } = await deployToken(hre, proxyAdmin, { tokenOwner: tokenOwner.address });
+  wDogeFixture = {
     wDoge: {
       ...wDoge,
-      tokenAdmin,
+      tokenOwner,
     },
   };
-  return dogethereumFixture;
+  return wDogeFixture;
 }

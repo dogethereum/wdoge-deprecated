@@ -4,7 +4,7 @@ import type { ContractTransaction } from "ethers";
 
 async function mockTransfers() {
   const deployment = await loadDeployment(hre);
-  const tokenAdmin = await hre.ethers.getSigner(deployment.wDoge.tokenAdmin);
+  const tokenAdmin = await hre.ethers.getSigner(deployment.wDoge.tokenOwner);
   const userA = await hre.ethers.getSigner("0x1f8826b2A56e84058455d2687c46Fc44C9F43F4D");
 
   // dogecoin has 8 decimals so 10^20 units = 10^12 WDoges
