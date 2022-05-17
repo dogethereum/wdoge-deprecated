@@ -46,35 +46,47 @@ Use `npm test` to run them.
 
 ## Deployment
 
-There is a Hardhat task that deploys the token system. It is meant for both testnet and mainnet networks.
+There is a Hardhat task that deploys the token system. It is meant for both Rinkeby testnet and mainnet networks.
 
 Here are step-by-step instructions for deployment. They assume an [Infura JSON-RPC endpoint](https://infura.io) is used.
+
+### Deployments from scratch
+
+The deployment is meant to bail out if it detects an already existing deployment. If you want to execute a new deployment from scratch, the deployment artifact should be erased or moved elsewhere. The upgrades plugin maintains an internal manifest that tracks deployment of proxies and implementation contracts that you may want to remove too.
+
+- Deployment artifact path: `./deployment/network-name/`
+    - The network name is the name used for the network in your Hardhat config.
+- Upgrades plugin manifest path: `./openzeppelin/network-name.json`
+    - Sometimes, the network name may be `unknown-$chainId.json` instead if it isn't a known network.
 
 ### Rinkeby deployment
 
 Two accounts are needed for deployment:
-- One is the proxy administrator. This is the same account that signs the deployment transactions.
-- Another one is the token administrator.
+1. The proxy admin. This is the same account that signs the deployment transactions.
+2. The token owner.
 
 These are the steps for a successful deploy on rinkeby:
-1. Set the `networks` property of your [hardhat config](hardhat.config.ts) like this:
-```js
-{
+1. Register an account in [Infura] and create a project for WDoge if you don't have one.
+2. Run `hh compile` to ensure the compiler output is up to date.
+3. Set the `networks` property of your [hardhat config](hardhat.config.ts) like this:
+```ts
+const config: HardhatUserConfig = {
   networks: {
     rinkeby: {
       url: "https://:your-secret@rinkeby.infura.io/v3/your-project-id",
-      accounts: ["your-hex-encoded-private-key"],
+      accounts: ["your-hex-encoded-deployer-private-key"],
     },
   },
+  // other config fields
 }
 ```
-2. Ensure your proxy administrator address has enough ether for deployment. The total deployment cost shouldn't be higher than 2M gas.
-3. Invoke the Hardhat deploy task:
+4. Ensure your proxy admin address has enough ether for deployment. The total deployment cost shouldn't be higher than 2M gas.
+5. Invoke the Hardhat deploy task:
 ```sh
-hh --network rinkeby dogethereum.deployToken --token-admin tokenAdminAddress
+hh --network rinkeby wdoge.deployToken --token-owner tokenOwnerAddress
 ```
 
-It is highly recommended to [verify](#verification) the logic contract and the proxy contract at this point.
+It is highly recommended to [verify](#etherscan-verification) the token implementation contract and the proxy contract at this point.
 
 Once that is done, the deployment is finished.
 
@@ -83,75 +95,86 @@ You can print the [proxy contract state](#reading-the-proxy-state) if you want.
 ### Mainnet deployment
 
 Three accounts are needed for deployment:
-- An externally owned account that signs the deployment transactions. We will call it the deployer address.
-- One is the proxy administrator. This should be a multisig wallet.
-- Another one is the token administrator. This should be a multisig wallet.
+1. The deployer. This is an externally owned account that signs the deployment transactions.
+2. The proxy admin. This should be a multisig wallet.
+3. The token owner. This should be a multisig wallet.
 
 These are the steps for a successful deploy on mainnet:
-1. Set the `networks` property of your [hardhat config] like this:
-```js
-{
+1. Register an account in [Infura] and create a project for WDoge if you don't have one.
+2. Run `hh compile` to ensure the compiler output is up to date.
+3. Set the `networks` property of your [hardhat config] like this:
+```ts
+const config: HardhatUserConfig = {
   networks: {
     mainnet: {
       url: "https://:your-secret@mainnet.infura.io/v3/your-project-id",
-      accounts: ["your-hex-encoded-private-key"],
+      accounts: ["your-hex-encoded-deployer-private-key"],
     },
   },
+  // other config fields
 }
 ```
-2. Ensure your deployer address has enough ether for deployment. The total deployment cost shouldn't be higher than 2M gas. You may want to specify [base fee and priority fees](#other-deployment-options) in the next step.
-3. Invoke the Hardhat deploy task:
+4. Ensure your deployer address has enough ether for deployment. The total deployment cost shouldn't be higher than 2M gas. You may want to specify [base fee and priority fees](#other-deployment-options) in the next step.
+5. Invoke the Hardhat deploy task:
 ```sh
-hh --network mainnet dogethereum.deployToken --token-admin tokenAdminAddress --proxy-admin proxyAdminAddress
+hh --network mainnet wdoge.deployToken --token-owner tokenOwnerAddress --proxy-admin proxyAdminAddress
 ```
+
+It is highly recommended to [verify](#etherscan-verification) the token implementation contract and the proxy contract at this point.
+
+Once that is done, the deployment is finished.
+
+You can print the [proxy contract state](#reading-the-proxy-state) if you want.
 
 ### Other deployment options
 
 The deploy task has other options that may be useful in certain network conditions. All options can be consulted by invoking:
 
 ```sh
-hh dogethereum.deployToken --help
+hh wdoge.deployToken --help
 ```
 
 Some of these options are:
 
-- `--token-gas-limit`: gas limit for the token logic contract deployment.
+- `--token-gas-limit`: gas limit for the token implementation contract deployment.
 - `--proxy-gas-limit`: gas limit for the proxy contract deployment.
 - `--max-fee-per-gas`: maximum fee per unit of gas.
 - `--max-priority-fee-per-gas`: maximum priority fee per unit of gas.
 
-## Verification
+## Etherscan verification
 
-To verify a contract we use the hardhat-etherscan plugin. These are the inputs needed for a successful verification:
+To verify a contract on Etherscan we use the hardhat-etherscan plugin. These are the inputs needed for a successful verification:
 
 - Network used for the deployment.
 - Contract address.
 - Constructor arguments, if any.
 
 There are two types of contracts that need verification:
-- Logic contracts
+- Implementation contracts
 - Proxy contracts
 
 Deployment artifacts store the inputs for each of these types in a different way.
 
-The following sections ([Logic contracts](#logic-contracts) and [Proxy contracts](#proxy-contracts)) assume that the contract verification state in etherscan is unverified and unmatched bytecode. This means that Etherscan not only doesn't know the exact source code used to compile the deployed contract but it also doesn't recognize the bytecode as similar to any other verified contract.
+The following sections ([Implementation contracts](#implementation-contracts) and [Proxy contracts](#proxy-contracts)) assume that the contract verification state in etherscan is unverified and unmatched bytecode. This means that Etherscan not only doesn't know the exact source code used to compile the deployed contract but it also doesn't recognize the bytecode as similar to any other verified contract.
 
 If Etherscan recognizes the contract bytecode as a similar match to another verified contract, refer to the [similar match](#similar-match) section for details on how to achieve an exact match verification.
 
-### Logic contracts
+Keep in mind that you can refer to the `hardhat-etherscan` CLI help by running `hh verify --help` or checking its [README](https://github.com/NomicFoundation/hardhat/tree/master/packages/hardhat-etherscan#readme).
 
-First of all, the address for the logic contract is needed. We are going to use the WDoge logic contract as an example here.
+### Implementation contract
 
-You can get the logic contract address for the token like this:
+First of all, the address for the implementation contract is needed. We are going to verify the source code of the WDoge implementation contract.
+
+You can get the implementation contract address for the token like this:
 
 ```sh
-jq .contracts.wDoge.logicContractAddress deployment/your-network/deployment.json
+jq .contracts.wDoge.proxyConstructorArgs.implementationContractAddress deployment/your-network/deployment.json
 ```
 
 Where `your-network` is the name of the network you used while running the deploy task, i.e. the `--network` argument.
 
 
-Once you have the address of the `WDoge` contract, you can run the Hardhat `verify` task to verify it.
+Once you have the address of the `WDoge` contract, you can run the Hardhat `verify` task to verify its source code.
 
 1. Set the `etherscan` property of your [hardhat config] like this:
 ```js
@@ -163,16 +186,16 @@ Once you have the address of the `WDoge` contract, you can run the Hardhat `veri
 ```
 2. Run the Hardhat verify task:
 ```sh
-hh --network your-network verify your-WDoge-logic-contract-address
+hh --network your-network verify your-WDoge-implementation-contract-address
 ```
 
-Note that there are no constructor arguments for the `WDoge` logic contract. In general, upgradeable contracts don't use constructor arguments although this may change in the future.
+Note that there are no constructor arguments for the `WDoge` implementation contract. In general, upgradeable contracts don't use constructor arguments although this may change in the future.
 
-Once that's done, it's verified. Of course, if you have more than one logic contract, you'll need to repeat the process until all of them are verified. If your contract actually has constructor arguments you'll need to provide them. Refer to the `hardhat-etherscan` help by running `hh verify --help` or checking its [README](https://github.com/NomicFoundation/hardhat/tree/master/packages/hardhat-etherscan#readme).
+Once that's done, it's verified.
 
 ### Proxy contracts
 
-We are going to use the WDoge proxy as an example here.
+We are going to verify the WDoge proxy here.
 
 You can get the proxy contract address for the token like this:
 
@@ -183,14 +206,14 @@ jq .contracts.wDoge.address deployment/your-network/deployment.json
 You also need the constructor arguments for the proxy.
 The proxy constructor has the following arguments:
 ```solidity
-constructor(address _logic, address admin_, bytes memory _data) {}
+constructor(address implementation, address admin, bytes memory data) {}
 ```
 
 Note that you need these values as they were sent in the deployment transaction, it does not matter if the contract later modified the state variables associated with these parameters. For this reason, the deploy task stores the arguments into the deployment artifact.
 
-1. The logic contract address for the `WDoge` is the same one as explained [here](#logic-contracts).
-2. The admin argument is the initial administrator account.
-3. The `_data` parameter is the ABI encoded call to the initializer function in the logic contract.
+1. The implementation contract address for the `WDoge` is the same one as explained [here](#implementation-contracts).
+2. The admin argument is the initial proxy admin account.
+3. The `data` parameter is the ABI encoded call to the initializer function in the implementation contract.
 
 Run `jq .contracts.wDoge.proxyConstructorArgs deployment/your-network/deployment.json` to get them.
 
@@ -206,13 +229,13 @@ With all these you can now verify the proxy contract:
 ```
 2. Run the Hardhat verify task:
 ```sh
-hh --network your-network verify your-WDoge-proxy-contract-address your-WDoge-logic-contract-address proxy-admin-address encoded-initializer-arguments
+hh --network your-network verify your-WDoge-proxy-contract-address --contract contracts/WDogeProxy.sol:WDogeProxy your-WDoge-implementation-contract-address proxy-admin-address encoded-initializer-arguments
 ```
 
 This verifies the proxy source code but there is more.
 
 Etherscan has `Read as proxy` and `Write as proxy` features that are enabled once the proxy has an associated implementation.
-To enable these, it is necessary to request Etherscan to recognize the contract as a proxy and to detect the implementation or logic contract address.
+To enable these, it is necessary to request Etherscan to recognize the contract as a proxy and to detect the implementation contract address.
 
 This can be done by going to the `Contract` tab, pressing the `More Options` button and choosing the `Is this a proxy?` option.
 
@@ -232,7 +255,8 @@ See https://info.etherscan.com/types-of-contract-verification/ and https://info.
 1. Select your account.
 2. Go to `Assets` tab.
 3. Click `Import tokens`.
-4. Paste the token contract address. The contract should have the `WDogeProxy` contract name.
+4. Paste the proxy contract address.
+    - You can check you've got the correct address by looking at the address view of the proxy in Etherscan. Once there, you should see that the contract has the `WDogeProxy` contract name.
 5. Wait for the Token Symbol and Token Decimals to be auto detected.
 6. Click `Add Custom Token`.
 7. Click `Import Tokens`.
@@ -241,24 +265,8 @@ Now you should see your token balance.
 
 ### Sending tokens in MetaMask
 
-This requires [registering the token](#viewing-your-balance-in-metamask) previously.
-To send tokens to another account
-
-1. Select your account.
-2. Go to `Assets` tab.
-3. Click the row that has the token symbol.
-4. Click the `Send` button.
-5. Choose the destination account.
-6. Choose the amount.
-7. Click Next.
-8. (Optional) Edit the gas fees.
-9. Click Confirm.
-
-Eventually, the transaction should be confirmed.
-
-### Getting the token ABI
-
-First, run `hh compile`. Then run `jq .abi artifacts/contracts/WDoge.sol/WDoge.json`.
+This requires you to [be able to view your balance in MetaMask](#viewing-your-balance-in-metamask).
+You can send WDoge tokens just like you do with any other ERC20 token.
 
 ## Upgrades
 
@@ -266,26 +274,26 @@ There is an upgrade task that helps prepare an upgrade so it can be finalized us
 
 The upgrade process consists of the following two transactions:
 
-1. The new logic contract deployment transaction.
+1. The new implementation contract deployment transaction.
   - This step uses the upgrades plugin.
   - The deployment transaction is skipped if there already is a deployment present in the network.
   - If you want to force a redeployment, it may be necessary to alter the upgrades plugin manifest in `.openzeppelin`.
-  - If the upgrades plugin finds an incompatibility in the new logic contract, it will abort the deployment.
+  - If the upgrades plugin finds an incompatibility in the new implementation contract, it will abort the deployment.
 2. The proxy upgrade transaction itself.
   - This transaction can call an initialization function optionally. See [this section](#specifying-migration-call) for more details.
 
 ### Preparing the upgrade
 
-There is only one task parameter that is mandatory. The `--new-logic-contract` parameter must be set to the name of the logic contract. If the contract name is not unique in the contracts directory, the fully qualified name may be necessary instead. E.g. the fully qualified name for `DummyToken` is `contracts/DummyToken.sol:DummyToken`.
+There is only one task parameter that is mandatory. The `--new-implementation-contract` parameter must be set to the name of the implementation contract. If the contract name is not unique in the contracts directory, the fully qualified name may be necessary instead. E.g. the fully qualified name for `DummyToken` is `contracts/DummyToken.sol:DummyToken`.
 
 Let's see an example of the task usage:
 
 ```sh
-$ hh --network rinkeby dogethereum.upgradeToken --new-logic-contract DummyToken
-Token logic is deployed at address 0x805439bc66707b4427D03062fC8379FB84f3723B.
+$ hh --network rinkeby wdoge.upgradeToken --new-implementation-contract DummyToken
+Token implementation contract is deployed at address 0x805439bc66707b4427D03062fC8379FB84f3723B.
 ```
 
-Other task parameters can be seen invoking `hh dogethereum.upgradeToken --help`.
+Other task parameters can be seen invoking `hh wdoge.upgradeToken --help`.
 
 In particular, you may be interested in [specifying a migration or initialization call](#specifying-migration-call) to be done when the upgrade is executed.
 
@@ -324,10 +332,10 @@ module.exports = {
 };
 ```
 
-You need to pass the path of this module to the `--call-args` parameter of the `dogethereum.upgradeToken` task. E.g:
+You need to pass the path of this module to the `--call-args` parameter of the `wdoge.upgradeToken` task. E.g:
 
 ```sh
-hh --network rinkeby dogethereum.upgradeToken --new-logic-contract Foo --call-args initialize_params.js
+hh --network rinkeby wdoge.upgradeToken --new-implementation-contract Foo --call-args initialize_params.js
 ```
 
 When invoking the upgrade task, you'll see a message like this:
@@ -350,7 +358,7 @@ Error: Timed out waiting for implementation contract deployment to address 0xDc6
 Run the function again to continue waiting for the transaction confirmation. If the problem persists, adjust the polling parameters with the timeout and pollingInterval options.
 ```
 
-then the transaction probably has a low gas price for the current network conditions. By default, the `dogethereum.upgradeToken` task waits for 60 seconds before timing out.
+then the transaction probably has a low gas price for the current network conditions. By default, the `wdoge.upgradeToken` task waits for 60 seconds before timing out.
 
 To send a transaction with higher gas price overriding the current one you can do the following:
 
@@ -379,35 +387,36 @@ The result should erase the key and value marked with an arrow:
 5. Reexecute the upgrade task specifying the `--nonce`, `--max-fee-per-gas`, `--max-priority-fee-per-gas` options.
 E.g:
 ```sh
-hh --network rinkeby dogethereum.upgradeToken --new-logic-contract DummyToken --nonce 8 --max-fee-per-gas 60 --max-priority-fee-per-gas 2
+hh --network rinkeby wdoge.upgradeToken --new-implementation-contract DummyToken --nonce 8 --max-fee-per-gas 60 --max-priority-fee-per-gas 2
 ```
 The `nonce` option should be the same nonce as the one in tx `0xb5f93fb9196054fad710cfd2b69fa7c48767661967e7a0f26a6438ff645a537e` and `--max-fee-per-gas`, `--max-priority-fee-per-gas` should be at least 10% higher than the one in tx `0xb5f93fb9196054fad710cfd2b69fa7c48767661967e7a0f26a6438ff645a537e`.
 
 ### Executing an upgrade
 
-This assumes that the proxy administrator is a [gnosis safe](https://gnosis-safe.io/) multisig contract.
+This assumes that the proxy admin is a [gnosis safe](https://gnosis-safe.io/) multisig contract.
 
 1. Open the [gnosis safe application](https://gnosis-safe.io/app/).
 2. Click "New Transaction"
 3. Click "Contract interaction"
 4. Paste the WDoge proxy address. See [here](#reading-the-proxy-state) to get the address.
-5. Paste the `WDogeProxy` ABI. To get the ABI:
+5. (Optional) This step may not be needed if the Gnosis Safe App fills in the proxy ABI for you.
+  Paste the `WDogeProxy` ABI. To get the ABI:
     1. Run `hh compile` to ensure contracts are compiled.
     2. Run `jq .abi artifacts/contracts/WDogeProxy.sol/WDogeProxy.json` to get the ABI.
 6. Select either `upgradeTo` or `upgradeToAndCall` as the method.
     - If there's no migration or initialization contract call then you want the `upgradeTo` method.
-7. Paste the new logic contract address in the `newImplementation` textbox.
+7. Paste the new implementation contract address in the `newImplementation` textbox.
 8. (Optional) If you're using the `upgradeToAndCall`, then
-    1. input the amount of ETH to send in the `Value` textbox.
+    1. input the amount of ETH to send to the proxy contract in the `Value` textbox. Typically, this would be zero.
     2. input the encoded migration call in the `data` textbox.
-9. Click the `Preview` button.
+9. Click the `Review` button.
 10. Click the `Submit` button.
 11. Approve the transaction so it is signed.
 12. Wait until the transaction has enough confirmations.
 
 Once it is confirmed, the transaction should have an `Upgraded` event visible in the `Logs` tab in Etherscan. You can use the [proxy inspection task](#reading-the-proxy-state) to check out the implementation address too.
 
-After executing the upgrade, it is important to issue a logic contract address redetection in etherscan.
+After executing the upgrade, it may be necessary to issue an implementation contract address redetection in etherscan.
 This can be done by going to the `Contract` tab, pressing the `More Options` button and choosing the `Is this a proxy?` option.
 See [the verification section for proxies](#proxy-contracts) for more details.
 
@@ -418,9 +427,14 @@ See [the verification section for proxies](#proxy-contracts) for more details.
 You can read the WDoge proxy state by invoking the following Hardhat task:
 
 ```sh
-hh --network your-network dogethereum.inspectProxy
+hh --network your-network wdoge.inspectProxy
 ```
 
 where `your-network` must match the network name you used to deploy the contracts.
 
+### Getting the token implementation ABI
+
+First, run `hh compile`. Then run `jq .abi artifacts/contracts/WDoge.sol/WDoge.json`.
+
 [hardhat config]: (hardhat.config.ts)
+[Infura]: https://infura.io/
