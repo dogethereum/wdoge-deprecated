@@ -1,4 +1,4 @@
-# Wrapped Doge token contract
+# Wrapped Dogecoin (wDoge) token contract
 
 The Dogecoin-Ethereum bridge requires a token to represent doges in the Ethereum network. This repository contains a token contract that fulfills this goal.
 
