@@ -85,6 +85,7 @@ const config: HardhatUserConfig = {
 ```sh
 hh --network rinkeby wdoge.deployToken --token-owner tokenOwnerAddress
 ```
+6. (Optional) If you want to publish this deployment, track both the `deployment/rinkeby/deployment.json` artifact and the `.openzeppelin/rinkeby.json` manifest and commit them.
 
 It is highly recommended to [verify](#etherscan-verification) the token implementation contract and the proxy contract at this point.
 
@@ -119,6 +120,7 @@ const config: HardhatUserConfig = {
 ```sh
 hh --network mainnet wdoge.deployToken --token-owner tokenOwnerAddress --proxy-admin proxyAdminAddress
 ```
+6. (Optional) If you want to publish this deployment, track both the `deployment/mainnet/deployment.json` artifact and the `.openzeppelin/mainnet.json` manifest and commit them.
 
 It is highly recommended to [verify](#etherscan-verification) the token implementation contract and the proxy contract at this point.
 
