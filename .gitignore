@@ -14,7 +14,7 @@ artifacts
 cache
 
 # Used by upgrades plugin
-.openzeppelin/
+.openzeppelin/unknown-31337.json
 
 # Deployment testing
 deployment/hardhat/
