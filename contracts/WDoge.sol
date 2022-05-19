@@ -31,7 +31,7 @@ contract WDoge is Initializable, ERC20Upgradeable, OwnableUpgradeable {
   }
 
   /**
-   * @notice Allows the token owner to mint wdoges to process a dogecoin lock tx.
+   * @notice Allows the token owner to mint wDoges to process a dogecoin lock tx.
    * @param amount Quantity of tokens to mint.
    * @param dogeLockTxId Dogecoin tx id of the lock tx that this mint corresponds to.
    */
@@ -46,7 +46,7 @@ contract WDoge is Initializable, ERC20Upgradeable, OwnableUpgradeable {
 
 
   /**
-   * @notice Allows the token owner to burn wdoges to process a dogecoin unlock tx.
+   * @notice Allows the token owner to burn wDoges to process a dogecoin unlock tx.
    * @param amount Quantity of tokens to mint.
    */
   function burn(uint256 amount) public onlyOwner {

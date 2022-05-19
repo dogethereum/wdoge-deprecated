@@ -95,7 +95,7 @@ Provide an explicit proxy administrator address with the '--proxy-admin' option.
 
 export const deployTaskName = generateTaskName("deployToken");
 
-task(deployTaskName, "Deploys doge token.")
+task(deployTaskName, "Deploys wDoge token.")
   .addParam(
     "tokenOwner",
     `The Ethereum address of the token owner. This account can mint and burn tokens.`,
