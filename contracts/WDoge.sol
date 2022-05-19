@@ -23,7 +23,7 @@ contract WDoge is Initializable, ERC20Upgradeable, OwnableUpgradeable {
 
   function initialize(address tokenAdmin) external initializer {
     // Contract initialization
-    __ERC20_init("Wrapped Doge", "WDOGE");
+    __ERC20_init("Wrapped Dogecoin", "WDOGE");
     __Ownable_init();
 
     // Must happen after initialization.
