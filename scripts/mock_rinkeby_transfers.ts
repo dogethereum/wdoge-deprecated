@@ -7,18 +7,18 @@ async function mockTransfers() {
   const tokenOwner = await hre.ethers.getSigner(deployment.wDoge.tokenOwner);
   const userA = await hre.ethers.getSigner("0x1f8826b2A56e84058455d2687c46Fc44C9F43F4D");
 
-  // dogecoin has 8 decimals so 10^20 units = 10^12 WDoges
-  const workingSupply = hre.ethers.BigNumber.from(10).pow(20);
+  // dogecoin has 8 decimals so 10^15 units = 10^7 WDoges
+  const workingSupply = hre.ethers.BigNumber.from(10).pow(15);
   const wDoge = deployment.wDoge.contract.connect(tokenOwner);
 
   const dummyTxId = `0x${"0".repeat(64)}`;
   let tx: ContractTransaction = await wDoge.mint(workingSupply, dummyTxId);
   await tx.wait();
-  tx = await wDoge.transfer(userA.address, hre.ethers.BigNumber.from(10).pow(17));
+  tx = await wDoge.transfer(userA.address, hre.ethers.BigNumber.from(10).pow(14));
   await tx.wait();
   console.log(`Minted ${workingSupply.div(1e8).toString()} tokens.`);
 
-  const tenthOfDoge = hre.ethers.BigNumber.from(1e7);
+  const tenthOfDoge = hre.ethers.BigNumber.from(1e4);
 
   for (let i = 0; i < 10; i++) {
     const suppliedAmount = tenthOfDoge.mul(10n ** BigInt(i));
