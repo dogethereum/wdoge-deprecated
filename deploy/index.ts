@@ -148,6 +148,8 @@ interface ContractInfo {
   sourceName: string;
   address: string;
   bytecodeAndSymbols: CompilerOutputContract["evm"];
+  storageLayout: unknown;
+  metadata: unknown;
 }
 
 export interface UpgradePreparation {
@@ -194,7 +196,10 @@ async function getContractDescription(
   if (build === undefined) {
     throw new Error(`Build info not found for ${fqName} contract`);
   }
-  const bytecodeAndSymbols = build.output.contracts[sourceName][contractName].evm;
+  const contractBuildInfo = build.output.contracts[sourceName][contractName];
+  const bytecodeAndSymbols = contractBuildInfo.evm;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { metadata, storageLayout } = contractBuildInfo as any;
 
   return {
     abi,
@@ -209,6 +214,8 @@ async function getContractDescription(
       },
     }),
     bytecodeAndSymbols,
+    metadata,
+    storageLayout,
   };
 }
 
