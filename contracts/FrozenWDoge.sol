@@ -53,4 +53,12 @@ contract FrozenWDoge is Initializable, ERC20Upgradeable, OwnableUpgradeable {
   ) public pure override returns (bool) {
     revert ContractFrozen();
   }
+
+  /**
+   * @dev Returns the number of decimals used to get its human representation.
+   * Dogecoin has 8 decimals so that's what we use here too.
+   */
+  function decimals() public pure override returns (uint8) {
+    return 8;
+  }
 }
