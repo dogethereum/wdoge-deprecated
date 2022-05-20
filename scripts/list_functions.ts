@@ -11,7 +11,7 @@ async function listFunctions() {
         ?.map(({ type, name }) => `${type} ${name ?? "_"}`)
         .join(", ");
       let fDescriptor = `  ${fCharacteristic}`;
-      if (outputs !== undefined) {
+      if (outputs !== undefined && outputs.length > 0) {
         fDescriptor += ` returns (${outputs})`;
       }
 
