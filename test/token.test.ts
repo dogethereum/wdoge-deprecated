@@ -13,17 +13,16 @@ const dummyTxId = `0x${"0".repeat(64)}`;
 // Note that bn.js can't parse MAX_UINT256 as a hex string.
 const MAX_UINT256 = new BN(1).shln(256).subn(1);
 
+const name = "Wrapped Dogecoin";
+const symbol = "WDOGE";
+const decimals = "8";
+const initialSupply = 100_000_000;
+
 describe("WDoge", function () {
   let initialHolder: SignerWithAddress,
     recipient: SignerWithAddress,
     anotherAccount: SignerWithAddress;
   let wDoge: ethers.Contract;
-
-  const name = "Wrapped Dogecoin";
-  const symbol = "WDOGE";
-  const decimals = "8";
-
-  const initialSupply = 100_000_000;
 
   isolateTests();
   isolateEachTest();
@@ -636,8 +635,9 @@ describe("WDoge initialize function", function () {
   });
 });
 
-describe("FrozenWDoge", function () {
-  const { abi } = hre.artifacts.readArtifactSync("FrozenWDoge");
+const frozenWDogeName = "FrozenWDoge";
+describe(frozenWDogeName, function () {
+  const { abi } = hre.artifacts.readArtifactSync(frozenWDogeName);
 
   describe("Functions", function () {
     for (const entity of abi) {
@@ -647,6 +647,61 @@ describe("FrozenWDoge", function () {
         assert.oneOf(entity.stateMutability, ["pure", "view"]);
       });
     }
+  });
+
+  describe("State observation", function () {
+    let wDoge: ethers.Contract;
+    let initialHolder: SignerWithAddress;
+    let user: SignerWithAddress;
+    const transferAmount = 100;
+
+    isolateTests();
+
+    before(async function () {
+      const deploy = await deployFixture(hre);
+      initialHolder = deploy.wDoge.tokenOwner;
+      user = (await hre.ethers.getSigners())[5];
+      const proxy = deploy.wDoge.contract.connect(initialHolder);
+      await proxy.mint(initialSupply, dummyTxId);
+      await proxy.transfer(user.address, transferAmount);
+
+      const proxyAdminAddress = await hre.upgrades.erc1967.getAdminAddress(proxy.address);
+      const tokenOwnerAddress = await proxy.owner();
+      const proxyAdmin = await hre.ethers.getSigner(proxyAdminAddress);
+      const tokenOwner = await hre.ethers.getSigner(tokenOwnerAddress);
+      const frozenWDogeFactory = (await hre.ethers.getContractFactory(frozenWDogeName)).connect(
+        proxyAdmin
+      );
+      wDoge = (await hre.upgrades.upgradeProxy(proxy, frozenWDogeFactory)).connect(tokenOwner);
+    });
+
+    it(`has ${name} name`, async function () {
+      expect(await wDoge.name()).to.equal(name);
+    });
+
+    it(`has ${symbol} symbol`, async function () {
+      expect(await wDoge.symbol()).to.equal(symbol);
+    });
+
+    it(`has ${decimals} decimals`, async function () {
+      expect((await wDoge.decimals()).toString()).to.be.bignumber.equal(decimals);
+    });
+
+    it(`isFrozen returns true`, async function () {
+      expect(await wDoge.isFrozen()).to.be.true;
+    });
+
+    it(`conserves balances as they were before freeze`, async function () {
+      expect((await wDoge.totalSupply()).toString()).to.be.bignumber.equal(
+        initialSupply.toString()
+      );
+      expect((await wDoge.balanceOf(initialHolder.address)).toString()).to.be.bignumber.equal(
+        (initialSupply - transferAmount).toString()
+      );
+      expect((await wDoge.balanceOf(user.address)).toString()).to.be.bignumber.equal(
+        transferAmount.toString()
+      );
+    });
   });
 });
 
