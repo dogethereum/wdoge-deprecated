@@ -12,32 +12,38 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  * functions of WDoge v1 to ensure they revert.
  */
 contract FrozenWDoge is Initializable, ERC20Upgradeable, OwnableUpgradeable {
+
+  /**
+   * The contract is frozen and this function cannot be executed at this time.
+   */
+  error ContractFrozen();
+
   function isFrozen() external pure returns (bool frozen) {
     return true;
   }
 
   function transferOwnership(address) public pure override {
-    revert();
+    revert ContractFrozen();
   }
 
   function approve(address, uint256) public pure override returns (bool) {
-    revert();
+    revert ContractFrozen();
   }
 
   function decreaseAllowance(address, uint256) public pure override returns (bool) {
-    revert();
+    revert ContractFrozen();
   }
 
   function increaseAllowance(address, uint256) public pure override returns (bool) {
-    revert();
+    revert ContractFrozen();
   }
 
   function renounceOwnership() public pure override {
-    revert();
+    revert ContractFrozen();
   }
 
   function transfer(address, uint256) public pure override returns (bool) {
-    revert();
+    revert ContractFrozen();
   }
 
   function transferFrom(
@@ -45,6 +51,6 @@ contract FrozenWDoge is Initializable, ERC20Upgradeable, OwnableUpgradeable {
     address,
     uint256
   ) public pure override returns (bool) {
-    revert();
+    revert ContractFrozen();
   }
 }
