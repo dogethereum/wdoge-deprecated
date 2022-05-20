@@ -636,6 +636,20 @@ describe("WDoge initialize function", function () {
   });
 });
 
+describe("FrozenWDoge", function () {
+  const { abi } = hre.artifacts.readArtifactSync("FrozenWDoge");
+
+  describe("Functions", function () {
+    for (const entity of abi) {
+      if (entity.type !== "function") continue;
+
+      it(`${entity.name} does not mutate contract state`, async function () {
+        assert.oneOf(entity.stateMutability, ["pure", "view"]);
+      });
+    }
+  });
+});
+
 async function expectTransfer(
   tx: ethers.ContractTransaction,
   from: SignerWithAddress | string,

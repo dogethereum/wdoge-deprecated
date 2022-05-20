@@ -1,7 +1,7 @@
 import hre from "hardhat";
 
 async function listFunctions() {
-  const contracts = ["WDogeProxy", "WDoge"];
+  const contracts = ["WDogeProxy", "WDoge", "FrozenWDoge"];
   for (const contractName of contracts) {
     console.log(`${contractName}:`);
     const contract = await hre.ethers.getContractFactory(contractName);
