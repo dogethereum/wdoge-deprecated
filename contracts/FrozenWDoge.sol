@@ -61,4 +61,8 @@ contract FrozenWDoge is Initializable, ERC20Upgradeable, OwnableUpgradeable {
   function decimals() public pure override returns (uint8) {
     return 8;
   }
+
+  function getVersion() external pure returns (uint256) {
+    return 10_001;
+  }
 }

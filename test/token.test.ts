@@ -687,6 +687,10 @@ describe(frozenWDogeName, function () {
       expect((await wDoge.decimals()).toString()).to.be.bignumber.equal(decimals);
     });
 
+    it(`getVersion returns 10.001`, async function () {
+      expect((await wDoge.getVersion()).toString()).to.be.bignumber.equal((10_001).toString());
+    });
+
     it(`isFrozen returns true`, async function () {
       expect(await wDoge.isFrozen()).to.be.true;
     });
