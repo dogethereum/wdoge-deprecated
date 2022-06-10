@@ -46,7 +46,7 @@ contract WDoge is Initializable, ERC20Upgradeable, OwnableUpgradeable {
 
   /**
    * @notice Allows the token owner to burn wDoges to process a dogecoin unlock tx.
-   * @param amount Quantity of tokens to mint.
+   * @param amount Quantity of tokens to burn.
    */
   function burn(uint256 amount) public onlyOwner {
     _burn(owner(), amount);
