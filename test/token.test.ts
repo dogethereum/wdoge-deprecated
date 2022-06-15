@@ -344,7 +344,7 @@ describe("WDoge", function () {
 
         it("emits an approval event", async function () {
           const tx = await wDoge.approve(recipient.address, amount);
-          expectApproval(tx, initialHolder, recipient, amount.toString());
+          await expectApproval(tx, initialHolder, recipient, amount.toString());
         });
 
         describe("when there was no approved amount before", function () {
@@ -404,7 +404,7 @@ describe("WDoge", function () {
 
           it("emits an approval event", async function () {
             const tx = await wDoge.decreaseAllowance(recipient.address, approvedAmount);
-            expectApproval(tx, initialHolder, recipient, "0");
+            await expectApproval(tx, initialHolder, recipient, "0");
           });
 
           it("decreases the spender allowance subtracting the requested amount", async function () {
@@ -455,7 +455,7 @@ describe("WDoge", function () {
       describe("when the sender has enough balance", function () {
         it("emits an approval event", async function () {
           const tx = await wDoge.increaseAllowance(recipient.address, initialSupply);
-          expectApproval(tx, initialHolder, recipient, initialSupply.toString());
+          await expectApproval(tx, initialHolder, recipient, initialSupply.toString());
         });
 
         describe("when there was no approved amount before", function () {
@@ -488,7 +488,7 @@ describe("WDoge", function () {
 
         it("emits an approval event", async function () {
           const tx = await wDoge.increaseAllowance(recipient.address, amount.toString());
-          expectApproval(tx, initialHolder, recipient, amount.toString());
+          await expectApproval(tx, initialHolder, recipient, amount.toString());
         });
 
         describe("when there was no approved amount before", function () {
@@ -561,7 +561,7 @@ describe("WDoge", function () {
       });
 
       it("emits Transfer event", async function () {
-        expectTransfer(receipt, ZERO_ADDRESS, recipient, amount.toString());
+        await expectTransfer(receipt, ZERO_ADDRESS, initialHolder.address, amount.toString());
       });
 
       it("emits Minted event", async function () {
@@ -602,7 +602,7 @@ describe("WDoge", function () {
         });
 
         it("emits Transfer event", async function () {
-          expectTransfer(receipt, initialHolder, ZERO_ADDRESS, amount.toString());
+          await expectTransfer(receipt, initialHolder, ZERO_ADDRESS, amount.toString());
         });
       });
     };
@@ -643,7 +643,7 @@ describe(frozenWDogeName, function () {
     for (const entity of abi) {
       if (entity.type !== "function") continue;
 
-      it(`${entity.name} does not mutate contract state`, async function () {
+      it(`${entity.name} does not mutate contract state`, function () {
         assert.oneOf(entity.stateMutability, ["pure", "view"]);
       });
     }
