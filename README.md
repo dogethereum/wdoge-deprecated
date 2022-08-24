@@ -1,5 +1,7 @@
 # Wrapped Dogecoin (wDoge) token contract
 
+DEPRECATED REPO - PLEASE VISIT [https://wdoge.tech](https://wdoge.tech)
+
 The Dogecoin-Ethereum bridge requires a token to represent doges in the Ethereum network. This repository contains a token contract that fulfills this goal.
 
 ## System overview
